@@ -30,6 +30,35 @@ const { heading, body, email } = Astro.props;
 </section>
 
 <script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* Opens out like a card, as "What we are" does: a little smaller with
+     rounder corners as it comes up the screen, growing to full size as it
+     scrolls in. Not for reduced motion. */
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll<HTMLElement>('[data-talk]').forEach((panel) => {
+      gsap.fromTo(
+        panel,
+        { scale: 0.74, borderRadius: () => Math.min(96, window.innerWidth * 0.06) },
+        {
+          scale: 1,
+          borderRadius: () => Math.min(28, Math.max(16, window.innerWidth * 0.018)),
+          ease: 'power1.inOut',
+          scrollTrigger: {
+            trigger: panel,
+            start: 'top 95%',
+            end: 'top 10%',
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+    });
+  }
+
   document.querySelectorAll<HTMLElement>('[data-talk]').forEach((panel) => {
     const button = panel.querySelector<HTMLButtonElement>('[data-copy]');
     const status = panel.querySelector<HTMLElement>('[data-copy-status]');
