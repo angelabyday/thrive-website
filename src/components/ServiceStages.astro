@@ -182,12 +182,12 @@ const looks = [
     pointer-events: none;
   }
 
-  /* Marks where the canvas draws the shape: top right, running off the
-     card's edge. */
+  /* Marks where the canvas draws the shape: top right, held in from the
+     card's edge by about the card's padding. */
   .stage-glass {
     position: absolute;
     top: 3.1cqw;
-    right: -6.2cqw;
+    right: 3.1cqw;
     display: block;
     width: 46cqw;
     aspect-ratio: 1 / 1;
