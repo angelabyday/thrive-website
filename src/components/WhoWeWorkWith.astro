@@ -352,11 +352,15 @@ const cards = sectors.map((name, i) => {
     text-wrap: balance;
   }
 
-  /* Phones: name under the number, left-aligned. */
+  /* Phones: name straight under the number, left-aligned, both at the
+     top of the card so the next card overlapping it doesn't cover the
+     name. */
   @media (max-width: 639px) {
     .who-card {
       grid-template-columns: 1fr;
       grid-template-rows: auto auto;
+      align-content: start;
+      row-gap: 6px;
     }
     .who-card-name {
       grid-column: 1;
