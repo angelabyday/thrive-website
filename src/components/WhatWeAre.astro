@@ -42,40 +42,30 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
 
   gsap.registerPlugin(ScrollTrigger);
 
-  /* The panel opens out of a circle: as it comes up the screen it shows
-     only through a small round window on the orange, which grows until
-     the whole panel is open by the time its top is a fifth of the way
-     down the screen. The circle stays centred on the part of the panel
-     that's on screen. Scrolling back closes it again. With reduced
-     motion the panel is simply there. */
+  /* The panel opens out like a card: it comes up the screen a little
+     smaller, with rounder corners and more orange round it, and grows to
+     its full size as it scrolls in, its corners easing to the usual
+     radius. Scrolling back shrinks it again. With reduced motion it's
+     simply there. */
   const panel = document.querySelector<HTMLElement>('[data-wwa-panel]');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (panel && !reduce) {
-    const ease = gsap.parseEase('power2.inOut');
-    const draw = (p: number) => {
-      if (p >= 1) {
-        panel.style.clipPath = '';
-        return;
-      }
-      const r = panel.getBoundingClientRect();
-      const w = r.width;
-      const h = r.height;
-      const top = Math.max(0, -r.top);
-      const bottom = Math.min(h, window.innerHeight - r.top);
-      const cx = w / 2;
-      const cy = Math.max(0, (top + bottom) / 2);
-      const start = Math.min(w, window.innerHeight) * 0.09;
-      const full = Math.hypot(Math.max(cx, w - cx), Math.max(cy, h - cy));
-      panel.style.clipPath = `circle(${start + (full - start) * ease(p)}px at ${cx}px ${cy}px)`;
-    };
-    draw(0);
-    ScrollTrigger.create({
-      trigger: panel,
-      start: 'top 95%',
-      end: 'top 20%',
-      onUpdate: (self) => draw(self.progress),
-      onRefresh: (self) => draw(self.progress),
-    });
+    gsap.fromTo(
+      panel,
+      { scale: 0.74, borderRadius: () => Math.min(96, window.innerWidth * 0.06) },
+      {
+        scale: 1,
+        borderRadius: () => Math.min(28, Math.max(16, window.innerWidth * 0.018)),
+        ease: 'power1.inOut',
+        scrollTrigger: {
+          trigger: panel,
+          start: 'top 95%',
+          end: 'top 10%',
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      },
+    );
   }
 </script>
 
