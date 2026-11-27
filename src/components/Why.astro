@@ -178,50 +178,48 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     const shift = () => parseFloat(getComputedStyle(statements[0]).fontSize) * 0.9;
     gsap.set(words.slice(1).flat(), { x: () => -shift(), autoAlpha: 0 });
 
-    /* The heading shows first. Each later statement takes over in turn:
-       the one on screen slides out a line at a time, then the next slides
-       in. Then a cue for the donut (below), and a hold before the section
-       lets go. */
-    const tl = gsap.timeline({
-      defaults: { ease: 'power3.out' },
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: 0.6,
-        invalidateOnRefresh: true,
-        onRefresh: measure,
-      },
-    });
-    tl.to({}, { duration: 0.3 });
-    statements.slice(1).forEach((_, n) => {
-      const i = n + 1;
-      tl.to(words[i - 1], { x: () => shift(), autoAlpha: 0, duration: 0.5, ease: 'power2.in', stagger: byLine(0.08) }, '+=0.6');
-      tl.to(words[i], { x: 0, autoAlpha: 1, duration: 0.7, stagger: byLine(0.12) }, '>-0.1');
-      /* The donut's cue: as the last statement slides in. */
-      if (i === statements.length - 1) tl.addLabel('bounce', '<');
-    });
-    /* The scroll only starts the donut, at its cue; it bounces through at
-       its own pace, on a timer. Scroll back above the cue and it's reset,
-       ready to go again. The section holds a while after the last
-       statement so there's time to watch it. */
-    tl.to({}, { duration: 1.2 });
+    /* The heading shows first. A short scroll moves on to the next
+       statement, which then plays through on its own: the one on screen
+       slides out a line at a time, the next slides in. Scrolling back
+       steps back the same way. The scroll only picks which statement
+       shows; the change runs at its own pace, so a little scroll is
+       enough. The donut is cued as the last statement comes in. */
+    let current = 0;
+    let change: ReturnType<typeof gsap.timeline> | null = null;
+    const show = (next: number) => {
+      if (next === current) return;
+      const from = current;
+      current = next;
+      change?.progress(1).kill();
+      change = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      change.to(words[from], { x: () => shift(), autoAlpha: 0, duration: 0.4, ease: 'power2.in', stagger: byLine(0.06) });
+      change.fromTo(
+        words[next],
+        { x: () => -shift(), autoAlpha: 0 },
+        { x: 0, autoAlpha: 1, duration: 0.6, stagger: byLine(0.1) },
+        '>-0.1',
+      );
+      if (next === statements.length - 1) {
+        change.call(play, [], '<');
+      } else {
+        drop?.kill();
+        hide();
+      }
+    };
 
-    let played = false;
+    /* The section is a short run of scroll per statement, plus a hold at
+       the end for the donut; which stretch you're in picks the statement. */
     ScrollTrigger.create({
       trigger: section,
       start: 'top top',
       end: 'bottom bottom',
+      invalidateOnRefresh: true,
+      onRefresh: measure,
       onUpdate: (self) => {
-        const cue = (tl.labels.bounce ?? tl.duration()) / tl.duration();
-        if (!played && self.progress >= cue) {
-          played = true;
-          play();
-        } else if (played && self.progress < cue - 0.02) {
-          played = false;
-          drop?.kill();
-          hide();
-        }
+        const n = statements.length;
+        /* One stretch per statement after the first, and one to hold. */
+        const step = Math.min(n - 1, Math.floor(self.progress * n));
+        show(step);
       },
     });
   });
@@ -236,7 +234,9 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     --donut: clamp(127px, min(15.8vw, 24.5svh), 288px);
     position: relative;
     box-sizing: border-box;
-    height: calc((var(--steps) + 3) * 100svh);
+    /* A short stretch of scroll (about a third of a screen) per
+       statement, plus a hold at the end for the donut. */
+    height: calc(100svh + (var(--steps) + 1) * 35svh);
     padding: var(--gutter);
     /* Runs up under the hero's rounded bottom corners, so cream shows
        behind them. */
