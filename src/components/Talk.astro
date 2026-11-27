@@ -87,6 +87,9 @@ const { heading, body, email } = Astro.props;
   .talk {
     --gutter: clamp(24px, 3vw, 48px);
     padding: var(--gutter);
+    /* Plus the footer's corner radius, as the footer tucks up under this
+       by that much, so the gap below the panel matches the sides. */
+    padding-bottom: calc(var(--gutter) + clamp(16px, 1.8vw, 28px));
     background: #fff2e6;
   }
 
