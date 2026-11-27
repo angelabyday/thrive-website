@@ -19,7 +19,7 @@ import {
   ringIndex,
   ringOut,
 } from './prism';
-import { GRADIENTS } from './glass';
+import { GRADIENTS, glassPixelRatio } from './glass';
 
 const SHAPES = ['seal', 'sunburst', 'clover', 'plus', 'flower', 'donut', 'diamond', 'domes', 'spokes', 'circle'];
 const DEPTH = 0.13;
@@ -58,7 +58,7 @@ export function mountChangeWord(root: HTMLElement, ground: string) {
     } catch {
       return; // No WebGL: the word stays as plain type.
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(glassPixelRatio());
     renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
 

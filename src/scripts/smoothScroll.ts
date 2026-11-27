@@ -13,9 +13,15 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* A phone's address bar sliding in and out changes the window's height;
+   don't recalculate every scroll animation when it does, or the page
+   stutters and nudges while scrolling. */
+ScrollTrigger.config({ ignoreMobileResize: true });
 
-if (!reduce) {
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const touch = window.matchMedia('(pointer: coarse)').matches;
+
+if (!reduce && !touch) {
   const lenis = new Lenis({
     /* How quickly the page catches up: lower is smoother and slower. */
     lerp: 0.09,

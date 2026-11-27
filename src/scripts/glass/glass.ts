@@ -28,6 +28,31 @@ export const GRADIENTS = [
   ['#ff3a1a', '#ff8a2a', '#ffd06a', '#fff0b0'],
 ];
 
+/* The most pixels per CSS pixel the glass is drawn at: full sharpness on
+   desktops, less on touch screens (phones and tablets), where it barely
+   shows and the saving keeps scrolling smooth. */
+export const glassPixelRatio = () =>
+  Math.min(window.devicePixelRatio, window.matchMedia('(pointer: coarse)').matches ? 1.25 : 2);
+
+/* One WebGL renderer shared by every `local` mount (the service cards),
+   drawing off screen; each card copies its picture onto its own canvas.
+   Phones allow only a handful of WebGL contexts and each one costs, so
+   six cards share one instead of having one each. */
+type Three = typeof import('three');
+let shared: { renderer: InstanceType<Three['WebGLRenderer']>; environment: InstanceType<Three['Texture']> } | null = null;
+function sharedRenderer(THREE: Three) {
+  if (!shared) {
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(glassPixelRatio());
+    renderer.setScissorTest(true);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const environment = new THREE.PMREMGenerator(renderer).fromScene(prismStudio(THREE), 0).texture;
+    shared = { renderer, environment };
+  }
+  return shared;
+}
+
 /* An element's position inside `root`, by layout. */
 function offsetIn(el: HTMLElement, root: Element | null) {
   let x = 0;
@@ -57,16 +82,26 @@ export function mountGlass(
     started = true;
     const THREE = await import('three');
     let renderer: InstanceType<typeof THREE.WebGLRenderer>;
+    let environment: InstanceType<typeof THREE.Texture>;
+    /* Local mounts draw with the shared renderer and copy onto their own
+       canvas through a 2D context. */
+    let copy: CanvasRenderingContext2D | null = null;
     try {
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      if (local) {
+        ({ renderer, environment } = sharedRenderer(THREE));
+        copy = canvas.getContext('2d');
+        if (!copy) return;
+      } else {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(glassPixelRatio());
+        renderer.setScissorTest(true);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        environment = new THREE.PMREMGenerator(renderer).fromScene(prismStudio(THREE), 0).texture;
+      }
     } catch {
-      return; // No WebGL: the hero still works without the shape.
+      return; // No WebGL: the page still works without the shape.
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setScissorTest(true);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    const environment = new THREE.PMREMGenerator(renderer).fromScene(prismStudio(THREE), 0).texture;
 
     const dome = (side: number) =>
       Array.from({ length: DOME + 1 }, (_, k) => {
@@ -240,8 +275,13 @@ export function mountGlass(
       const width = local ? canvas.offsetWidth : Math.round(box.width);
       const height = local ? canvas.offsetHeight : Math.round(box.height);
       const ratio = renderer.getPixelRatio();
-      if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio))
+      const target = copy ? renderer.domElement : canvas;
+      if (target.width !== Math.round(width * ratio) || target.height !== Math.round(height * ratio))
         renderer.setSize(width, height, false);
+      if (copy && (canvas.width !== target.width || canvas.height !== target.height)) {
+        canvas.width = target.width;
+        canvas.height = target.height;
+      }
       renderer.setScissor(0, 0, width, height);
       renderer.setClearColor(0x000000, 0);
       renderer.clear();
@@ -306,13 +346,18 @@ export function mountGlass(
         v.mesh.rotation.z = Number(v.el.dataset.spin ?? 0);
         renderer.render(v.scene, v.camera);
       }
+      /* Shared renderer: copy this frame onto the card's own canvas. */
+      if (copy) {
+        copy.clearRect(0, 0, canvas.width, canvas.height);
+        copy.drawImage(renderer.domElement, 0, 0);
+      }
       if (!still) frame = requestAnimationFrame(render);
     };
     frame = requestAnimationFrame(render);
     stop = () => {
       seen.disconnect();
       cancelAnimationFrame(frame);
-      renderer.dispose();
+      if (!copy) renderer.dispose();
     };
   };
 
