@@ -140,52 +140,6 @@ const nav = [
   const hero = document.querySelector<HTMLElement>('.hero');
   const canvas = hero?.querySelector<HTMLCanvasElement>('.hero-canvas');
   if (hero && canvas) mountGlass(hero, canvas);
-
-  /* The header stays at the top of the window as the page scrolls, so the
-     logo takes the type colour that goes with whatever is behind it:
-     yellow on orange, orange on yellow, navy on the light colours, cream
-     on navy. Checked as the page scrolls, at the logo's middle. */
-  const header = document.querySelector<HTMLElement>('.hero-nav');
-  const logo = header?.querySelector<HTMLElement>('.hero-logo');
-  if (header && logo) {
-    const INK: Record<string, string> = {
-      'rgb(235, 87, 61)': '#F9E07A',
-      'rgb(249, 224, 122)': '#EB573D',
-      'rgb(198, 236, 226)': '#182235',
-      'rgb(255, 242, 230)': '#182235',
-      'rgb(255, 255, 255)': '#182235',
-      'rgb(24, 34, 53)': '#FFF2E6',
-    };
-    const behind = () => {
-      const r = logo.getBoundingClientRect();
-      const x = r.left + r.width / 2;
-      const y = r.top + r.height / 2;
-      for (const el of document.elementsFromPoint(x, y)) {
-        if (header.contains(el)) continue;
-        for (let at: Element | null = el; at; at = at.parentElement) {
-          const bg = getComputedStyle(at).backgroundColor;
-          if (INK[bg]) return INK[bg];
-          if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return null;
-        }
-      }
-      return null;
-    };
-    let queued = false;
-    const update = () => {
-      queued = false;
-      const ink = behind();
-      if (ink) header.style.setProperty('--logo-ink', ink);
-    };
-    const queue = () => {
-      if (!queued) {
-        queued = true;
-        requestAnimationFrame(update);
-      }
-    };
-    window.addEventListener('scroll', queue, { passive: true });
-    window.addEventListener('resize', queue);
-    update();
-  }
 </script>
 
 <style>
@@ -255,9 +209,9 @@ const nav = [
     font-size: clamp(15px, 1.15vw, 20px);
   }
 
-  /* Its place in the hero: as tall as the header. */
+  /* Its place in the hero: as tall as the header bar. */
   .hero-nav-space {
-    height: max(44px, 2.6em);
+    height: calc(max(44px, 2.6em) + 0.5em);
     font-size: clamp(15px, 1.15vw, 20px);
   }
 
@@ -265,8 +219,8 @@ const nav = [
     display: block;
     width: clamp(96px, 8vw, 150px);
     aspect-ratio: 631.6 / 144.62;
-    background: var(--logo-ink, var(--yellow));
-    transition: background-color 0.25s ease;
+    /* Orange on the bar's yellow. */
+    background: var(--orange);
     mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
     -webkit-mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
   }
@@ -290,6 +244,27 @@ const nav = [
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  /* All in one bar: a yellow lozenge across the top holding the logo on
+     the left and the menu and "Talk to us" on the right. */
+  .hero-nav {
+    box-sizing: border-box;
+    padding: 0.25em 0.25em 0.25em clamp(16px, 1.6vw, 28px);
+    border-radius: 999px;
+    background: var(--yellow);
+  }
+
+  /* The menu sits straight on the bar. */
+  .hero-nav .nav-pill {
+    padding: 0;
+    background: none;
+  }
+
+  /* "Talk to us" in orange with yellow type, to stand out on the bar. */
+  .hero-nav .cta {
+    --cta-bg: var(--orange);
+    color: var(--yellow) !important;
   }
 
   /* The menu and the call to action, side by side. */
