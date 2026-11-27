@@ -302,6 +302,10 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     position: relative;
     z-index: 1;
     display: grid;
+    /* The lines slide in and out past the panel's edges, so they're cut
+       off at its sides (out past the panel's padding), never drawn over
+       the cream round it. The donut's canvas isn't affected. */
+    clip-path: inset(-50vh calc(-1 * max(16px, calc(var(--pad-x) - var(--gutter)))));
   }
 
   .why-statement {
