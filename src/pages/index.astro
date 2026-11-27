@@ -202,17 +202,18 @@ const email = 'hello@andwethrive.co.uk';
         line-height: 1.4;
         text-wrap: pretty;
       }
-      /* Services framework: on the brand's cream, its top corners rounded
-         with orange behind them, running on from the orange round "What we
-         are" above. */
+      /* Services framework: on the brand's cream, all four corners
+         rounded. Orange behind the top ones, running on from the orange
+         round "What we are" above; navy behind the bottom ones, running on
+         into the navy "Four things" section below. */
       .services-wrap {
-        background: #eb573d;
+        background: linear-gradient(#eb573d 50%, #182235 50%);
       }
       #what-we-do {
         background: #fff2e6;
         color: #182235;
         display: flow-root;
-        border-radius: clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px) 0 0;
+        border-radius: clamp(16px, 1.8vw, 28px);
       }
     </style>
   </head>
