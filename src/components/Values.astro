@@ -1,0 +1,276 @@
+---
+/* "Four things you can hold us to." as four numbered cards in a row.
+   Each card's number is set huge and runs off the card's left edge, so
+   only part of the leading zero shows; the promise sits at the foot.
+
+   Each card flips over to its explanation, as the service stages do: on
+   hover where there is a pointer, and on tap or Enter/Space anywhere. The
+   explanation is in the page for screen readers whichever side is
+   showing. Each card is its own container, so its type scales with it,
+   from four across to one. */
+interface Value {
+  n: string;
+  title: string;
+  body: string;
+}
+interface Props {
+  heading: string;
+  values: Value[];
+}
+const { heading, values } = Astro.props;
+
+/* On a navy section, so no black card: yellow on orange, orange on
+   yellow, navy on mint, navy on cream. Backs are all cream. */
+const looks = [
+  { bg: '#EB573D', ink: '#F9E07A' },
+  { bg: '#F9E07A', ink: '#EB573D' },
+  { bg: '#C6ECE2', ink: '#182235' },
+  { bg: '#FFF2E6', ink: '#182235' },
+];
+---
+
+<section id="values" class="values">
+  <h2 class="values-heading">{heading}</h2>
+  <ol class="values-list">
+    {
+      values.map((v, i) => {
+        const look = looks[i % looks.length];
+        const backId = `value-back-${v.n}`;
+        return (
+          <li class="value" data-value style={`--bg: ${look.bg}; --ink: ${look.ink}`}>
+            <div class="value-card">
+              <div class="value-face value-front">
+                <span class="value-number" aria-hidden="true">
+                  {v.n}
+                </span>
+                <h3 class="value-title">{v.title}</h3>
+              </div>
+              <div class="value-face value-back" id={backId}>
+                <span class="value-back-number" aria-hidden="true">
+                  {v.n}
+                </span>
+                <p class="value-body">{v.body}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="value-flip"
+              aria-expanded="false"
+              aria-controls={backId}
+              aria-label={`More about: ${v.title}`}
+            />
+          </li>
+        );
+      })
+    }
+  </ol>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-value]').forEach((card) => {
+    const flip = card.querySelector<HTMLButtonElement>('.value-flip');
+    if (!flip) return;
+    const set = (on: boolean) => {
+      card.toggleAttribute('data-flipped', on);
+      flip.setAttribute('aria-expanded', String(on));
+    };
+    flip.addEventListener('click', () => set(!card.hasAttribute('data-flipped')));
+    /* With a mouse, hover does the flipping; a click while hovering
+       shouldn't leave the card stuck over once the pointer goes. */
+    card.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse') set(false);
+    });
+  });
+</script>
+
+<style>
+  /* Navy edge to edge (the service stages' navy), cream heading. */
+  .values {
+    margin: 0;
+    padding: clamp(48px, 7vw, 120px) var(--pad-x);
+    background: #182235;
+    color: #FFF2E6;
+    font-family: 'Albert Sans', system-ui, sans-serif;
+  }
+
+  .values-heading {
+    margin: 0 0 clamp(24px, 3vw, 48px);
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(36px, 5vw, 80px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  .values-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(12px, 1.5vw, 24px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .value {
+    container-type: inline-size;
+    position: relative;
+    perspective: 1600px;
+  }
+
+  /* Both faces in one grid cell, so the card is as tall as the taller
+     of them, never shorter than 3:4. */
+  .value-card {
+    display: grid;
+    min-height: 133cqw;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .value[data-flipped] .value-card {
+    transform: rotateY(180deg);
+  }
+
+  @media (hover: hover) {
+    .value:hover .value-card {
+      transform: rotateY(180deg);
+    }
+  }
+
+  .value-face {
+    grid-area: 1 / 1;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 6cqw 7cqw 8cqw;
+    overflow: hidden;
+    border-radius: 10px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .value-front {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* Every back is cream with navy type, whatever the front. */
+  .value-back {
+    background: #FFF2E6;
+    color: #182235;
+    transform: rotateY(180deg);
+  }
+
+  .value-number,
+  .value-back-number,
+  .value-title {
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .value-number {
+    display: block;
+    /* Pulled past the padding and further, so the 0 is cut by the
+       card's edge and the second digit stands whole. */
+    margin-left: -24cqw;
+    font-size: 78cqw;
+    line-height: 0.8;
+    white-space: nowrap;
+  }
+
+  .value-title {
+    margin: 0;
+    font-size: 9.5cqw;
+    line-height: 0.95;
+    text-wrap: balance;
+  }
+
+  .value-back-number {
+    font-size: 9.5cqw;
+    line-height: 1;
+  }
+
+  .value-body {
+    margin: 0;
+    font-size: max(15px, 6.4cqw);
+    line-height: 1.3;
+  }
+
+  /* Covers the whole card, so a tap anywhere flips it. Invisible, but
+     shows a ring when reached with the keyboard. */
+  .value-flip {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .value-flip {
+      cursor: default;
+    }
+  }
+
+  .value-flip:focus-visible {
+    outline: 3px solid #182235;
+    outline-offset: 3px;
+  }
+
+  /* Two across on tablets, one on phones. */
+  @media (max-width: 1023px) {
+    .values-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 639px) {
+    .values-list {
+      grid-template-columns: 1fr;
+    }
+    .value-card {
+      min-height: 75cqw;
+    }
+    .value-number {
+      font-size: 56cqw;
+      margin-left: -17cqw;
+    }
+    .value-title,
+    .value-back-number {
+      font-size: 7.5cqw;
+    }
+    .value-body {
+      font-size: 17px;
+    }
+  }
+
+  /* No turning: the back fades in over the front instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .value-card,
+    .value[data-flipped] .value-card,
+    .value:hover .value-card {
+      transform: none;
+      transition: none;
+    }
+    .value-back {
+      transform: none;
+      opacity: 0;
+      transition: opacity 0.2s linear;
+    }
+    .value[data-flipped] .value-back {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (hover: hover) {
+    .value:hover .value-back {
+      opacity: 1;
+    }
+  }
+</style>

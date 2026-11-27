@@ -1,0 +1,317 @@
+---
+/* The six stages of the services framework as numbered cards, three by
+   two, each with a turning glass shape in its corner, from the brand
+   document's "How we work" sheet
+   (localhost:4503/thrive-brand-development/#how-we-work).
+
+   Each card flips over to its stage's description: on hover where there
+   is a pointer, and on tap or Enter/Space anywhere. The description is in
+   the page for screen readers whichever side is showing. Each card is its
+   own container, so its type scales with it, from three across to one. */
+interface Stage {
+  n: string;
+  name: string;
+  line: string;
+  body: string;
+}
+interface Props {
+  stages: Stage[];
+}
+const { stages } = Astro.props;
+
+const ORANGE = '#EB573D';
+const YELLOW = '#F9E07A';
+const MINT = '#C6ECE2';
+const NAVY = '#182235';
+
+/* Each card's ground, ink, shape and gradient, as in the design. The
+   back swaps ground and ink. */
+const looks = [
+  { bg: ORANGE, ink: YELLOW, shape: 'seal', gradient: 3 },
+  { bg: YELLOW, ink: ORANGE, shape: 'clover', gradient: 2 },
+  { bg: MINT, ink: NAVY, shape: 'plus', gradient: 1 },
+  { bg: YELLOW, ink: ORANGE, shape: 'sunburst', gradient: 5 },
+  { bg: MINT, ink: NAVY, shape: 'domes', gradient: 0 },
+  { bg: ORANGE, ink: YELLOW, shape: 'flower', gradient: 4 },
+];
+---
+
+<ol class="stages" data-stages>
+  {
+    stages.map((s, i) => {
+      const look = looks[i % looks.length];
+      const backId = `stage-back-${s.n}`;
+      return (
+        <li class="stage" data-stage style={`--bg: ${look.bg}; --ink: ${look.ink}`}>
+          <div class="stage-card">
+            <div class="stage-face stage-front">
+              <canvas class="stage-canvas" aria-hidden="true" />
+              <span
+                class="stage-glass"
+                aria-hidden="true"
+                data-glass={look.shape}
+                data-gradient={look.gradient}
+                data-ground={look.bg}
+              />
+              <span class="stage-number" aria-hidden="true">
+                {s.n}
+              </span>
+              <div class="stage-text">
+                <h3 class="stage-name">
+                  <span class="visually-hidden">Stage {s.n}: </span>
+                  {s.name}
+                </h3>
+                <p class="stage-line">{s.line}</p>
+              </div>
+            </div>
+            <div class="stage-face stage-back" id={backId}>
+              <p class="stage-back-name" aria-hidden="true">
+                {s.n} {s.name}
+              </p>
+              <p class="stage-body">{s.body}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="stage-flip"
+            aria-expanded="false"
+            aria-controls={backId}
+            aria-label={`More about ${s.name}`}
+          />
+        </li>
+      );
+    })
+  }
+</ol>
+
+<script>
+  import { mountGlass } from '../scripts/glass/glass';
+
+  document.querySelectorAll<HTMLElement>('[data-stage]').forEach((stage) => {
+    /* Each card draws its own shape, on a canvas inside its front, so the
+       shape turns over with the card. */
+    const front = stage.querySelector<HTMLElement>('.stage-front');
+    const canvas = stage.querySelector<HTMLCanvasElement>('.stage-canvas');
+    if (front && canvas) mountGlass(front, canvas, undefined, undefined, true);
+
+    const flip = stage.querySelector<HTMLButtonElement>('.stage-flip');
+    if (!flip) return;
+    const set = (on: boolean) => {
+      stage.toggleAttribute('data-flipped', on);
+      flip.setAttribute('aria-expanded', String(on));
+    };
+    flip.addEventListener('click', () => set(!stage.hasAttribute('data-flipped')));
+    /* With a mouse, hover does the flipping; a click while hovering
+       shouldn't leave the card stuck over once the pointer goes. */
+    stage.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse') set(false);
+    });
+  });
+</script>
+
+<style>
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(12px, 1.5vw, 24px);
+    margin: clamp(24px, 3vw, 48px) var(--pad-x);
+    padding: 0;
+    list-style: none;
+  }
+
+  .stage {
+    container-type: inline-size;
+    position: relative;
+    perspective: 1600px;
+    font-family: 'Albert Sans', system-ui, sans-serif;
+  }
+
+  /* Both faces in one grid cell, so the card is as tall as the taller
+     of them, never shorter than 4:3. */
+  .stage-card {
+    display: grid;
+    min-height: 75cqw;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .stage[data-flipped] .stage-card {
+    transform: rotateY(180deg);
+  }
+
+  @media (hover: hover) {
+    .stage:hover .stage-card {
+      transform: rotateY(180deg);
+    }
+  }
+
+  .stage-face {
+    grid-area: 1 / 1;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 6.2cqw;
+    overflow: hidden;
+    border-radius: 10px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .stage-front {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .stage-back {
+    justify-content: flex-start;
+    gap: 3cqw;
+    background: var(--ink);
+    color: var(--bg);
+    transform: rotateY(180deg);
+  }
+
+  /* The front's shape, drawn on its own canvas under the type. */
+  .stage-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Marks where the canvas draws the shape: top right, running off the
+     card's edge. */
+  .stage-glass {
+    position: absolute;
+    top: 3.1cqw;
+    right: -6.2cqw;
+    display: block;
+    width: 46cqw;
+    aspect-ratio: 1 / 1;
+  }
+
+  .stage-number,
+  .stage-text {
+    position: relative;
+    z-index: 2;
+  }
+
+  .stage-number,
+  .stage-name,
+  .stage-back-name {
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+  }
+
+  .stage-number {
+    font-size: 9.9cqw;
+  }
+
+  .stage-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1.9cqw;
+  }
+
+  .stage-name {
+    margin: 0;
+    font-size: 8.7cqw;
+  }
+
+  .stage-line {
+    margin: 0;
+    font-size: max(14px, 3.9cqw);
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+
+  .stage-back-name {
+    margin: 0;
+    font-size: max(20px, 6cqw);
+  }
+
+  .stage-body {
+    margin: 0;
+    font-size: max(15px, 4.2cqw);
+    line-height: 1.35;
+  }
+
+  /* Covers the whole card, so a tap anywhere flips it. Invisible, but
+     shows a ring when reached with the keyboard. */
+  .stage-flip {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .stage-flip {
+      cursor: default;
+    }
+  }
+
+  .stage-flip:focus-visible {
+    outline: 3px solid #182235;
+    outline-offset: 3px;
+  }
+
+  /* Two across on tablets and small desktops, one on phones. */
+  @media (max-width: 1199px) {
+    .stages {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 639px) {
+    .stages {
+      grid-template-columns: 1fr;
+    }
+    .stage-line {
+      white-space: normal;
+    }
+  }
+
+  /* No turning: the back fades in over the front instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .stage-card,
+    .stage[data-flipped] .stage-card,
+    .stage:hover .stage-card {
+      transform: none;
+      transition: none;
+    }
+    .stage-back {
+      transform: none;
+      opacity: 0;
+      transition: opacity 0.2s linear;
+    }
+    .stage[data-flipped] .stage-back {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (hover: hover) {
+    .stage:hover .stage-back {
+      opacity: 1;
+    }
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,388 @@
+---
+import Hero from '../components/Hero.astro';
+import Footer from '../components/Footer.astro';
+import ServiceStages from '../components/ServiceStages.astro';
+import CaseStudies from '../components/CaseStudies.astro';
+import Values from '../components/Values.astro';
+import Why from '../components/Why.astro';
+import WhoWeWorkWith from '../components/WhoWeWorkWith.astro';
+import Talk from '../components/Talk.astro';
+import WhatWeAre from '../components/WhatWeAre.astro';
+
+const nav = [
+  { href: '#what-we-do', label: 'What we do' },
+  { href: '#how-we-work', label: 'How we work' },
+  { href: '#work', label: 'Work' },
+  { href: '#the-name', label: 'The name' },
+  { href: '#talk', label: 'Talk to us' },
+];
+
+const sectors = ['Charities', 'Manufacturers', 'Software companies', 'Start-ups', 'Institutions'];
+
+const stages = [
+  {
+    n: '01',
+    name: 'Strategy',
+    line: 'Working out where you fit now.',
+    body: "Before anything gets made, we work out what's actually changed and what you need to become because of it. That might mean research, talking to customers and staff, a hard look at the numbers or a couple of uncomfortable workshops. What comes out is a clear direction and a plan to get there, written so people can act on it.",
+  },
+  {
+    n: '02',
+    name: 'Orchestration',
+    line: 'Getting everything pointing the same way.',
+    body: "Change rarely sits neatly in one department. We map how your organisation works today, its services, journeys, teams and systems, and design how it needs to work tomorrow. That way brand, service design, marketing and technology pull in the same direction, and you don't end up with four separate briefs that never meet.",
+  },
+  {
+    n: '03',
+    name: 'Production',
+    line: 'Making the thing.',
+    body: "Brands, campaigns, content, websites, digital products and tools. We make them ourselves and don't hand a brief to someone else, so the idea that was agreed is the one that gets built.",
+  },
+  {
+    n: '04',
+    name: 'Activation',
+    line: 'Putting it into the world.',
+    body: "A good idea nobody notices doesn't change anything. We launch it, get it in front of the right people and make sure it's chosen and used. This covers campaigns and channels, and also the internal side; your own people need to get behind it as much as your customers do.",
+  },
+  {
+    n: '05',
+    name: 'Management',
+    line: 'Keeping it running.',
+    body: "Once something is live, it needs looking after. We manage channels, content, campaigns and platforms day to day as an extension of your team, and we step back when we're no longer useful.",
+  },
+  {
+    n: '06',
+    name: 'Optimisation',
+    line: 'Making it better.',
+    body: "We measure what's working and what isn't, then keep adjusting. Standing still is no better six months after launch than it was before we started.",
+  },
+];
+
+const ways = [
+  {
+    title: 'Small and senior on purpose.',
+    body: "There's no account layer and nobody learning the job on your budget, so the people doing the thinking are the people doing the making, and they're the same people you talk to.",
+  },
+  {
+    title: 'A shared channel and a session every fortnight.',
+    body: "Day to day we work with you in Slack or Teams and sit down together every two weeks. We bring direction, so you're not continually briefing us.",
+  },
+  {
+    title: 'Weeks, not eighteen months.',
+    body: "Things move faster than this sort of work used to. And we'd rather price the outcome than count the days.",
+  },
+  {
+    title: 'Yes, we use AI.',
+    body: "It sits in the kit alongside everything else and it's a big part of why a team our size moves at the speed it does. What you're paying for is the judgement about what to do with it.",
+  },
+];
+
+const values = [
+  {
+    n: '01',
+    title: 'We start with the problem, not the discipline.',
+    body: "We'll use whichever of brand, service design, marketing or technology gets you there, and we won't pretend the answer is the thing we happen to enjoy making.",
+  },
+  {
+    n: '02',
+    title: 'We say the uncomfortable thing early.',
+    body: "You're paying for a point of view, not agreement, so you'll hear it in the first meeting and not the last. We'd rather lose a job than win it by nodding.",
+  },
+  {
+    n: '03',
+    title: 'We build what we recommend.',
+    body: "Advice that stays in a deck hasn't changed anything. If we wouldn't build it, we don't recommend it.",
+  },
+  {
+    n: '04',
+    title: 'We earn it.',
+    body: "We don't take credit for things we didn't do, and we don't blame the market for things we did.",
+  },
+];
+
+const cases = [
+  {
+    client: 'Help for Heroes',
+    sector: 'Charities',
+    /* No case study pages yet. */
+    href: '#',
+    /* From helpforheroes.org.uk (Christmas 2026 campaign): confirm
+       permission to use before launch. */
+    image: '/images/cases/help-for-heroes-christmas.jpg',
+    title: 'From everyone-for-everything to one journey, with a named person on the end of it.',
+    body: "The brief was for a shared vision. What they needed was an operating model, so we said so. It's being implemented now, held to first contact within one working day, a named contact within 24 hours and a confirmed plan within ten days.",
+  },
+  {
+    client: 'Grantify',
+    sector: 'Software companies',
+    href: '#',
+    /* Trial only: a moodboard reference, not cleared for use. Replace
+       with Grantify's own imagery before launch. */
+    image: '/images/cases/trial-grantify.webp',
+    title: 'From no marketing and paused spend to a demand engine where over half the leads are the right companies.',
+    body: "While the product had moved, the marketing hadn't. So we built it. The first campaign turned 184 visitors into 85 accounts and 42 calls, and for the first time over half the leads were the right kind of company.",
+  },
+  /* Draft copy: check the facts before launch. */
+  {
+    client: 'Love & Logic',
+    sector: 'Brand consultancy',
+    href: '#',
+    /* Trial only: a moodboard reference, not cleared for use. */
+    image: '/images/cases/trial-love-and-logic.webp',
+    title: 'From a good reputation passed on by word of mouth to a clear position that brings the right work in.',
+    body: "Love & Logic had the clients and the craft, but the way it described itself hadn't kept up with the work. We worked out where it fits now and built the brand and site to say so.",
+  },
+];
+
+const email = 'hello@andwethrive.co.uk';
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thrive | A strategy company for organisations on the move</title>
+    <meta
+      name="description"
+      content="Thrive is a strategy company for organisations on the move. We help you work out where you fit now, then focus on how to get there."
+    />
+    <style is:global>
+      @font-face {
+        font-family: 'Tumla';
+        src: url('/fonts/tumla-bold.woff2') format('woff2');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Albert Sans';
+        src: url('/fonts/albert-sans-vf.ttf') format('truetype');
+        font-weight: 100 900;
+        font-display: swap;
+      }
+      /* Side padding for every section's content. Wider screens get more
+         room at the edges, so lines don't run so close to the window. */
+      :root {
+        --pad-x: clamp(20px, 4vw, 80px);
+      }
+      /* From small desktops up: 8% of the width, so 82px at 1024 and
+         115px at 1440, rising to 200px on very wide screens. */
+      @media (min-width: 1024px) {
+        :root {
+          --pad-x: clamp(64px, 8vw, 200px);
+        }
+      }
+      body {
+        margin: 0;
+        font-family: 'Albert Sans', system-ui, sans-serif;
+        /* Navy for text that isn't set otherwise, never black. */
+        color: #182235;
+        /* White behind everything, so rounded section corners read
+           cleanly whatever the browser's own background. */
+        background: #fff;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+        font-weight: 700;
+      }
+      /* One line height for every h2, as on the hero headline. */
+      h2 {
+        line-height: 1.05;
+      }
+      /* Form controls don't take the page's font by default. */
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      /* A section's heading and short intro, lined up with the content
+         below it. Same heading size as the case studies. */
+      .section-intro {
+        padding: clamp(56px, 7vw, 120px) var(--pad-x) 0;
+      }
+      .section-intro h2 {
+        margin: 0;
+        color: #182235;
+        font-size: clamp(36px, 4.4vw, 72px);
+        line-height: 1.05;
+        letter-spacing: -0.01em;
+      }
+      .section-intro p {
+        max-width: 40em;
+        margin: clamp(16px, 1.6vw, 24px) 0 0;
+        font-size: clamp(18px, 1.5vw, 24px);
+        line-height: 1.4;
+        text-wrap: pretty;
+      }
+      /* Services framework: on the brand's cream, its top corners rounded
+         with orange behind them, running on from the orange round "What we
+         are" above. */
+      .services-wrap {
+        background: #eb573d;
+      }
+      #what-we-do {
+        background: #fff2e6;
+        color: #182235;
+        display: flow-root;
+        border-radius: clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px) 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <Hero />
+
+      <!-- Why we're here -->
+      <Why
+        kicker="Why we're here"
+        heading="When you no longer fit where you are, you need to move."
+        lines={[
+          "It might be that the market's shifted, your existing model has stopped working, or the thing you were built for isn't quite the thing anymore.",
+          'We help you work out where you fit now, and then focus on how to get there.',
+          "Because business works better when you don't stand still.",
+        ]}
+      />
+
+      <!-- Who we work with -->
+      <WhoWeWorkWith
+        kicker="Who we work with"
+        heading={"Nobody rings us when\neverything's fine."}
+        sectors={sectors}
+        lead="The organisations we work with don't have much in common. What they share is a moment; the market's moved, the model has stopped paying, a service needs redesigning, or a product has to launch into a world that changed while it was being built."
+        cta={{ label: 'Find out more', href: '#what-we-do' }}
+      />
+
+
+      <!-- What we are -->
+      <WhatWeAre
+        kicker="We're a strategy company"
+        heading="We start with what your organisation needs to become, and then work out what it will take to get you there."
+        body={[
+          "That might be building a stronger brand, reimagining your core service, changing how you reach customers or launching a new product, and it's often more than one of these with every piece of work.",
+          "We don't arrive with an answer in mind, and if what you need is a change to how you work rather than a campaign, we'll say so.",
+        ]}
+        close="The strategy isn't finished until something has changed."
+      />
+
+      <!-- What we do: services framework -->
+      <div class="services-wrap">
+      <section id="what-we-do">
+        <div class="section-intro">
+          <h2>Our services framework.</h2>
+          <p>
+            The work runs in order. Strategy comes first and each stage sets up the next, through to
+            optimisation. Where you join depends on what you already have in place.
+          </p>
+        </div>
+
+        <ServiceStages stages={stages} />
+
+        <div class="underpinned">
+          <h3>Our framework is underpinned by:</h3>
+          <p>
+            <strong>Technology &amp; data.</strong> We use technology and data to augment,
+            accelerate and amplify the work we do.
+          </p>
+          <p>
+            <strong>Creativity &amp; craft.</strong> We use creativity to solve problems and bring
+            craft to everything we produce.
+          </p>
+        </div>
+      </section>
+      </div>
+
+      <!-- How we work -->
+      <section id="how-we-work">
+        <p>How we work</p>
+        <h2>The people you meet are the people who do the work.</h2>
+        {
+          ways.map((w) => (
+            <div>
+              <h3>{w.title}</h3>
+              <p>{w.body}</p>
+            </div>
+          ))
+        }
+        <!-- Video placeholder: Oliver and Simon on how we work -->
+        <button type="button" aria-label="Play video">Watch video 01:00</button>
+      </section>
+
+      <!-- Values -->
+      <Values heading="Four things you can hold us to." values={values} />
+
+      <!-- Work -->
+      <CaseStudies heading="Organisations that moved." cases={cases} />
+
+      <!-- The name -->
+      <section id="the-name">
+        <p>The name</p>
+        <h2>An old Norse word for getting a grip.</h2>
+        <p>
+          Thrive arrived in English with the Danes, about eleven hundred years ago. The Old Norse
+          word was þrífask and it meant to grasp, to take hold of something for yourself. So before
+          thrive meant flourishing, it meant getting a grip on what you needed. The flourishing came
+          afterwards, as a consequence.
+        </p>
+        <p>
+          There's a twist as well. In Danish, Swedish and Norwegian the same word, trives, now
+          means to feel at home, to fit. Scandinavia kept the belonging and English kept the
+          growing. We treat them as one idea. An organisation that has to move is one that's
+          stopped fitting where it is, and thriving is finding where you fit again and taking hold
+          of it.
+        </p>
+      </section>
+
+      <!-- Outcomes -->
+      <section id="outcomes">
+        <p>Good outcomes, well earned.</p>
+        <p>
+          Thrive has never meant lucky. Good outcomes are earned, and someone has to take hold of
+          them.
+        </p>
+      </section>
+
+      <!-- Who we are -->
+      <section id="who-we-are">
+        <p>Who we are</p>
+        <h2>Small, senior and still there the night before launch.</h2>
+        <p>
+          Thrive was started in 2025 by Oliver Budworth and Simon Evans, on the basis that we'd
+          never be tied to a commercial agenda for what the answer should be.
+        </p>
+        <p>
+          Behind that sits 27 years of marketing, brand, advertising and customer experience
+          strategy, in every category from charities to cat food and sports to software. Around the
+          two of us is a small team covering strategy, design, software engineering and
+          performance.
+        </p>
+        <p>
+          We build our own tools as readily as we build yours, mostly because we can't leave things
+          alone. And we finish things, which includes the live bit, the measuring bit and the
+          making-it-better bit.
+        </p>
+      </section>
+
+      <!-- Talk to us -->
+      <Talk
+        heading="You don't need a brief."
+        body={[
+          "Most people who get in touch don't have one yet, and being honest that's usually when we're most useful.",
+          "Tell us what's changed and what's stopped working. We'll tell you what we think, including if we think you don't need us.",
+        ]}
+        email={email}
+      />
+    </main>
+
+    <Footer nav={nav} email={email} />
+    <script>
+      import '../scripts/smoothScroll';
+    </script>
+  </body>
+</html>

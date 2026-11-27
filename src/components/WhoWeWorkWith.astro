@@ -1,0 +1,367 @@
+---
+/* "Who we work with", as one piece in two columns. On the left, the copy
+   reads straight down (the label, the heading, the lead, any body text
+   and a button) and is held in place until the cards have finished
+   stacking. On the right, the sectors as a stack of rounded cards,
+   each stuck near the top of the screen as you scroll so the next slides
+   up over it, leaving a sliver of the ones before showing above. Each
+   card carries a number and the sector's name on a flat brand colour.
+
+   On narrow screens it's one column: label, heading and lead, then the
+   cards, then the rest of the copy. */
+
+interface Props {
+  kicker: string;
+  heading: string;
+  sectors: string[];
+  lead: string;
+  body?: string[];
+  cta: { label: string; href: string };
+}
+const { kicker, heading, sectors, lead, body = [], cta } = Astro.props;
+
+/* Each card's colour and type colour, in turn. */
+/* Brand palette only: orange, yellow, the blue accent and navy. */
+const looks = [
+  { bg: '#EB573D', ink: '#F9E07A' },
+  { bg: '#F9E07A', ink: '#EB573D' },
+  { bg: '#C6ECE2', ink: '#182235' },
+  { bg: '#182235', ink: '#C6ECE2' },
+  { bg: '#EB573D', ink: '#F9E07A' },
+];
+const cards = sectors.map((name, i) => {
+  const look = looks[i % looks.length];
+  return { name, n: String(i + 1).padStart(2, '0'), ...look };
+});
+---
+
+<section id="who" class="who">
+  <div class="who-panel">
+  <div class="who-copy">
+  <div class="who-intro">
+    <p class="who-kicker">{kicker}</p>
+    {/* Line breaks in the heading (\n) are kept, so it sets as written. */}
+    <h2 class="who-heading">
+      {heading.split('\n').map((line, i) => (i ? <><br />{line}</> : line))}
+    </h2>
+    <p class="who-lead">{lead}</p>
+  </div>
+  <div class="who-rest">
+    {body.map((p) => <p class="who-text">{p}</p>)}
+    {/* The same joined pill and arrow as the hero's buttons (it uses the
+        hero's #cta-merge filter), in orange with yellow type. */}
+    <a href={cta.href} class="who-cta">
+      <span class="who-cta-shape">
+        <span class="who-cta-label">{cta.label}</span>
+        <span class="who-cta-icon" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 8h10M9 4l4 4-4 4"></path>
+          </svg>
+        </span>
+      </span>
+    </a>
+  </div>
+  </div>
+
+  <ol class="who-cards">
+    {
+      cards.map((c, i) => (
+        <li class="who-card" style={`--i: ${i}; --bg: ${c.bg}; --ink: ${c.ink}`}>
+          <span class="who-card-n" aria-hidden="true">
+            {c.n}
+          </span>
+          <h3 class="who-card-name">{c.name}</h3>
+        </li>
+      ))
+    }
+  </ol>
+
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* The cards start folded: each pulled up to sit just below the top of
+     the one before (a sliver showing), and open out to their places as
+     the list scrolls up the screen. Scrubbed, so scrolling back folds
+     them again. Left open for anyone who has asked for reduced motion. */
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const list = document.querySelector<HTMLElement>('.who-cards');
+
+  if (list && !reduce) {
+    const cards = gsap.utils.toArray<HTMLElement>('.who-card', list);
+    /* The sliver of each folded card left showing: the list's --peek,
+       clamp(14px, 1.6vw, 24px). */
+    const peek = () => Math.min(24, Math.max(14, window.innerWidth * 0.016));
+    gsap.fromTo(
+      cards,
+      { y: (i: number) => i * peek() - cards[i].offsetTop + cards[0].offsetTop },
+      {
+        y: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: list,
+          start: 'top 75%',
+          end: 'bottom 85%',
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      },
+    );
+  }
+</script>
+
+<style>
+  /* Two columns: the copy down the left, held in place while the cards
+     fold over each other on the right, and let go once the last has
+     landed (the end of the cards column). */
+  /* The section runs full width with its corners rounded. Not clipped
+     (no overflow), so the sticky copy and cards still work inside it.
+     Orange behind it shows at the rounded bottom corners, running on
+     into the orange round "What we are" below. */
+  .who {
+    background: #eb573d;
+  }
+
+  .who-panel {
+    --gap: clamp(28px, 3vw, 48px);
+    /* Square at the top, where it runs on from the cream round the panel
+       above; rounded at the bottom. */
+    border-radius: 0 0 clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'copy cards';
+    column-gap: clamp(24px, 4vw, 72px);
+    padding: clamp(56px, 7vw, 120px) var(--pad-x);
+    background: #fff2e6;
+    color: #182235;
+  }
+
+  .who-copy {
+    grid-area: copy;
+    position: sticky;
+    top: clamp(16px, 2vw, 32px);
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+  }
+
+  .who-intro,
+  .who-rest {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 1.6vw, 24px);
+  }
+
+  .who-cards {
+    grid-area: cards;
+    align-self: start;
+  }
+
+
+  /* One column: label, heading and lead, then the cards, then the rest.
+     The copy's wrapper steps aside so its two parts can sit either side
+     of the cards, and nothing is held. */
+  @media (max-width: 899px) {
+    .who-panel {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'intro'
+        'cards'
+        'rest';
+      row-gap: var(--gap);
+    }
+    .who-copy {
+      display: contents;
+    }
+    .who-intro {
+      grid-area: intro;
+    }
+    .who-rest {
+      grid-area: rest;
+    }
+  }
+
+  .who-kicker {
+    margin: 0;
+    /* Same size and weight as the "Why we're here" label. */
+    font-size: clamp(16px, 1.3vw, 20px);
+    font-weight: 400;
+  }
+
+  .who-heading {
+    color: #182235;
+    margin: 0;
+    /* Set on its written lines, each kept whole: sized to the column so
+       the longest line fits. */
+    font-size: clamp(30px, 3.6vw, 66px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .who-lead {
+    max-width: 32em;
+    margin: clamp(4px, 0.6vw, 8px) 0 0;
+    font-size: clamp(18px, 1.4vw, 22px);
+    line-height: 1.3;
+    text-wrap: pretty;
+  }
+
+  .who-text {
+    max-width: 36em;
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  /* The button: a label pill and an arrow disc joined by a soft neck;
+     on hover the disc pulls away and the arrow levels out. */
+  .who-cta {
+    --cta-size: max(48px, 2.8em);
+    align-self: flex-start;
+    margin-top: clamp(8px, 1.2vw, 20px);
+    border-radius: 999px;
+    color: #f9e07a;
+    font-size: clamp(16px, 1.2vw, 20px);
+    text-decoration: none;
+  }
+
+  .who-cta-shape {
+    display: inline-flex;
+    align-items: center;
+    filter: url(#cta-merge);
+  }
+
+  .who-cta-label,
+  .who-cta-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--cta-size);
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: #eb573d;
+  }
+
+  .who-cta-label {
+    padding: 0 1.2em;
+  }
+
+  .who-cta-icon {
+    width: var(--cta-size);
+    margin-left: -0.15em;
+    transition: transform 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .who-cta-icon svg {
+    width: 0.85em;
+    height: 0.85em;
+    rotate: -45deg;
+    transition: rotate 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .who-cta:hover .who-cta-icon,
+  .who-cta:focus-visible .who-cta-icon {
+    transform: translateX(0.55em);
+  }
+
+  .who-cta:hover .who-cta-icon svg,
+  .who-cta:focus-visible .who-cta-icon svg {
+    rotate: 0deg;
+  }
+
+  .who-cta:focus-visible {
+    outline: 3px solid #182235;
+    outline-offset: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .who-cta-icon,
+    .who-cta-icon svg {
+      transition: none;
+    }
+  }
+
+
+  /* The cards: each sticks a little lower than the one before, so as the
+     next slides up over it a sliver of every earlier card stays in view,
+     like a stack. */
+  .who-cards {
+    --peek: clamp(14px, 1.6vw, 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding-top: 0;
+    padding-inline: 0;
+    list-style: none;
+  }
+
+  /* Each card sits where it lands when the stack is open; the script
+     starts them folded up on the first, a sliver of each showing, and
+     opens them out as the section scrolls up the screen. */
+  .who-card {
+    position: relative;
+    will-change: transform;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto;
+    gap: 16px 24px;
+    min-height: clamp(150px, 26svh, 260px);
+    padding: clamp(20px, 2.6vw, 44px);
+    border-radius: clamp(16px, 1.8vw, 28px);
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* At rest each card already tucks a little over the bottom of the one
+     before, like a loose stack, before they fold together. */
+  .who-card + .who-card {
+    margin-top: calc(-1 * clamp(64px, 8vw, 130px));
+  }
+
+  .who-card-n,
+  .who-card-name {
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .who-card-n {
+    font-size: clamp(24px, 2.6vw, 46px);
+  }
+
+  .who-card-name {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    margin: 0;
+    font-size: clamp(24px, 2.6vw, 46px);
+    white-space: nowrap;
+    line-height: 1.05;
+    text-align: right;
+    text-wrap: balance;
+  }
+
+  /* Phones: name under the number, left-aligned. */
+  @media (max-width: 639px) {
+    .who-card {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+    }
+    .who-card-name {
+      grid-column: 1;
+      grid-row: 2;
+      text-align: left;
+    }
+  }
+</style>

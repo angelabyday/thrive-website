@@ -1,0 +1,405 @@
+---
+/* "Why we're here": one big statement at a time on a mint panel, held on
+   screen while the page scrolls. The heading goes first; as you scroll,
+   each following statement takes its place. Lines slide in from the left
+   one after another and leave to the right.
+
+   The words lead. Nothing else moves until the last statement is in:
+   then one glass donut comes in off the top left, arcing down in front
+   of the words, lands under them and bounces off to the right.
+
+   The section is several screens tall and its content is sticky, so the
+   page scrolls normally; the scroll drives the changes and cues the
+   donut, which then bounces through in its own time.
+   All the statements are in the page, in order, for screen readers. With
+   reduced motion they stack one under another, nothing is held and the
+   donut isn't shown. */
+interface Props {
+  kicker: string;
+  heading: string;
+  lines: string[];
+}
+const { kicker, heading, lines } = Astro.props;
+
+
+/* A statement as its words, each moved on its own. */
+const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean));
+---
+
+<section id="why" class="why" data-why style={`--steps: ${lines.length}`}>
+  <div class="why-stage">
+    <canvas class="why-canvas" aria-hidden="true"></canvas>
+    <p class="why-kicker">{kicker}</p>
+    <div class="why-head">
+      {/* Where the donut bounces: its floor a little under the last
+          statement, placed by the script once the lines are laid out. */}
+      <div class="why-lane" aria-hidden="true" data-why-lane>
+        <span class="why-roller" data-why-roller>
+          <span class="why-donut" data-glass="donut" data-gradient="1" data-ground="none" data-why-donut></span>
+          <span class="why-shadow"></span>
+        </span>
+      </div>
+      <div class="why-statements" data-why-statements>
+        {
+          statements.map((words, i) => {
+            const Tag = i === 0 ? 'h2' : 'p';
+            return (
+              <Tag class="why-statement" data-why-statement>
+                {words.map((w) => (
+                  <>
+                    <span class="why-w">
+                      <span class="why-wi">{w}</span>
+                    </span>{' '}
+                  </>
+                ))}
+              </Tag>
+            );
+          })
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { mountGlass } from '../scripts/glass/glass';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll<HTMLElement>('[data-why]').forEach((section) => {
+    const stage = section.querySelector<HTMLElement>('.why-stage');
+    const canvas = section.querySelector<HTMLCanvasElement>('.why-canvas');
+    const lane = section.querySelector<HTMLElement>('[data-why-lane]');
+    const roller = section.querySelector<HTMLElement>('[data-why-roller]');
+    const shadow = section.querySelector<HTMLElement>('.why-shadow');
+    const donut = section.querySelector<HTMLElement>('[data-why-donut]');
+    const block = section.querySelector<HTMLElement>('[data-why-statements]');
+    if (stage && canvas) mountGlass(stage, canvas);
+    if (reduce || !stage || !lane || !roller || !donut || !block) return;
+
+    const statements = [...section.querySelectorAll<HTMLElement>('[data-why-statement]')];
+    const words = statements.map((s) => [...s.querySelectorAll<HTMLElement>('.why-wi')]);
+    const last = statements[statements.length - 1];
+
+    /* Which line each word sits on, by layout, so a statement's lines can
+       move one after another, and where the donut's lane goes: under the
+       last statement. Worked out again when the width changes, as the
+       lines wrap differently. */
+    const lineOf = new Map<HTMLElement, number>();
+    const measure = () => {
+      statements.forEach((s, i) => {
+        const tops: number[] = [];
+        words[i].forEach((w) => {
+          const top = Math.round((w.parentElement as HTMLElement).offsetTop);
+          let n = tops.findIndex((t) => Math.abs(t - top) < 4);
+          if (n < 0) n = tops.push(top) - 1;
+          lineOf.set(w, n);
+        });
+      });
+      lane.style.top = `${block.offsetTop + last.offsetTop + last.offsetHeight}px`;
+    };
+    measure();
+
+    /* The donut's path, once cued: it comes in off the panel's top left,
+       arcing down in front of the words, lands on the floor
+       under the last statement, then bounces off to the right in three
+       hops, each lower than the last. It turns by the distance it
+       travels, so it rolls as it hops. The shadow stays on the floor,
+       smaller and fainter the higher the donut is. `x` is along the lane,
+       `y` the height above its floor. */
+    const state = { x: 0, y: 0 };
+    let startX = 0;
+    const render = () => {
+      const size = donut.offsetWidth;
+      roller.style.transform = `translateX(${state.x}px)`;
+      donut.style.transform = `translateY(${-state.y}px)`;
+      donut.dataset.spin = String(-(state.x - startX) / (size / 2));
+      if (shadow) {
+        const k = Math.min(1, state.y / (size * 1.5));
+        shadow.style.transform = `scale(${1 - k * 0.7})`;
+        shadow.style.opacity = String(1 - k * 0.8);
+      }
+    };
+    /* Out of sight, before its cue or after scrolling back above it:
+       parked well off the left of the window. (The glass is drawn wherever
+       its box is, so hiding the box wouldn't hide it.) */
+    const hide = () => {
+      state.x = -lane.getBoundingClientRect().left - donut.offsetWidth * 3;
+      state.y = 0;
+      render();
+    };
+    hide();
+    window.addEventListener('resize', measure);
+
+    let drop: ReturnType<typeof gsap.timeline> | null = null;
+    const play = () => {
+      drop?.kill();
+      const size = donut.offsetWidth;
+      const st = stage.getBoundingClientRect();
+      const ln = lane.getBoundingClientRect();
+      /* Starting just off the left of the window, up near the panel's
+         top, as if thrown in from the side. */
+      startX = -ln.left - size;
+      const high = ln.top - st.top - size * 0.1;
+      const land = st.width * 0.32 - (ln.left - st.left) - size / 2;
+      /* Off the right of the window. */
+      const exit = window.innerWidth - ln.left;
+      state.x = startX;
+      state.y = high;
+      render();
+      drop = gsap.timeline({ onUpdate: render });
+      /* The fall: across at a steady pace while dropping faster and
+         faster, so it arcs down over the words like something thrown. */
+      drop.to(state, { x: land, duration: 0.9, ease: 'none' });
+      drop.to(state, { y: 0, duration: 0.9, ease: 'power2.in' }, '<');
+      /* The hops off to the right: across at a steady pace, up and down
+         on each. */
+      const hops = [
+        { to: 0.38, height: 0.9, time: 0.55 },
+        { to: 0.7, height: 0.55, time: 0.45 },
+        { to: 1.05, height: 0.35, time: 0.4 },
+      ];
+      hops.forEach((h) => {
+        drop!.to(state, { x: land + (exit - land) * h.to, duration: h.time, ease: 'none' });
+        drop!.to(state, { y: size * h.height, duration: h.time / 2, ease: 'power2.out' }, '<');
+        drop!.to(state, { y: 0, duration: h.time / 2, ease: 'power2.in' }, '>');
+      });
+      drop.eventCallback('onComplete', hide);
+    };
+
+    /* A delay per word from its line, for GSAP's stagger. */
+    const byLine = (step: number) => (_i: number, el: HTMLElement) => (lineOf.get(el) ?? 0) * step;
+    /* Lines slide in from the left and out to the right; the distance is
+       a share of the type size. */
+    const shift = () => parseFloat(getComputedStyle(statements[0]).fontSize) * 0.9;
+    gsap.set(words.slice(1).flat(), { x: () => -shift(), autoAlpha: 0 });
+
+    /* The heading shows first. Each later statement takes over in turn:
+       the one on screen slides out a line at a time, then the next slides
+       in. Then a cue for the donut (below), and a hold before the section
+       lets go. */
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: {
+        trigger: section,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 0.6,
+        invalidateOnRefresh: true,
+        onRefresh: measure,
+      },
+    });
+    tl.to({}, { duration: 0.3 });
+    statements.slice(1).forEach((_, n) => {
+      const i = n + 1;
+      tl.to(words[i - 1], { x: () => shift(), autoAlpha: 0, duration: 0.5, ease: 'power2.in', stagger: byLine(0.08) }, '+=0.6');
+      tl.to(words[i], { x: 0, autoAlpha: 1, duration: 0.7, stagger: byLine(0.12) }, '>-0.1');
+      /* The donut's cue: as the last statement slides in. */
+      if (i === statements.length - 1) tl.addLabel('bounce', '<');
+    });
+    /* The scroll only starts the donut, at its cue; it bounces through at
+       its own pace, on a timer. Scroll back above the cue and it's reset,
+       ready to go again. The section holds a while after the last
+       statement so there's time to watch it. */
+    tl.to({}, { duration: 1.2 });
+
+    let played = false;
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        const cue = (tl.labels.bounce ?? tl.duration()) / tl.duration();
+        if (!played && self.progress >= cue) {
+          played = true;
+          play();
+        } else if (played && self.progress < cue - 0.02) {
+          played = false;
+          drop?.kill();
+          hide();
+        }
+      },
+    });
+  });
+</script>
+
+<style>
+  /* The panel is mint with rounded corners, held a gutter in from the
+     window's edges. Tall enough for a screen of scroll per change, then
+     the roll and a hold. */
+  .why {
+    --gutter: clamp(24px, 3vw, 48px);
+    --donut: clamp(127px, min(15.8vw, 24.5svh), 288px);
+    position: relative;
+    box-sizing: border-box;
+    height: calc((var(--steps) + 3) * 100svh);
+    padding: var(--gutter);
+    /* Runs up under the hero's rounded bottom corners, so cream shows
+       behind them. */
+    --tuck: clamp(16px, 1.8vw, 28px);
+    margin-top: calc(-1 * var(--tuck));
+    padding-top: calc(var(--gutter) + var(--tuck));
+    /* The donut crosses the whole window, over the cream either side of
+       the panel; anything past the window's edges is cut off, without
+       stopping the panel sticking. */
+    overflow-x: clip;
+    /* Cream round the panel, running on into "Who we work with" below,
+       so it wraps round the bottom of the panel. */
+    background: #fff2e6;
+    color: #182235;
+  }
+
+  .why-stage {
+    position: sticky;
+    top: var(--gutter);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100svh - 2 * var(--gutter));
+    /* Less the gap round the panel, so the content lines up with the
+       other sections. */
+    padding: clamp(32px, 4.5vw, 80px) max(16px, calc(var(--pad-x) - var(--gutter)));
+    border-radius: clamp(16px, 1.8vw, 28px);
+    background: #c6ece2;
+    color: #182235;
+  }
+
+  /* The donut's canvas, over the whole panel and the cream round it (so
+     the donut comes in and goes off at the window's edges), and over the
+     type, so the donut falls in front of the words. It has no ground of
+     its own, so only the donut covers anything. */
+  .why-canvas {
+    position: absolute;
+    z-index: 2;
+    inset: calc(-1 * var(--gutter));
+    width: calc(100% + 2 * var(--gutter));
+    height: calc(100% + 2 * var(--gutter));
+    pointer-events: none;
+  }
+
+  .why-kicker {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    font-size: clamp(16px, 1.3vw, 20px);
+  }
+
+  /* The statements fill the rest of the panel, centred in it. */
+  .why-head {
+    position: relative;
+    flex: 1;
+    display: grid;
+    align-content: center;
+  }
+
+  /* All the statements in one cell, so they swap in place; each is
+     centred in it. */
+  .why-statements {
+    position: relative;
+    z-index: 1;
+    display: grid;
+  }
+
+  .why-statement {
+    grid-area: 1 / 1;
+    align-self: center;
+    max-width: 16em;
+    margin: 0;
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(32px, min(5.4vw, 7.4svh), 108px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  /* The donut's lane, under the last statement (its top is set by the
+     script): a small gap, then a band as tall as the donut. The donut is
+     drawn over the words, so its hops can pass in front of them. */
+  .why-lane {
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: var(--donut);
+    margin-top: calc(var(--donut) * 0.35);
+  }
+
+  .why-roller {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: var(--donut);
+    height: var(--donut);
+    will-change: transform;
+  }
+
+  .why-donut {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  /* A soft contact shadow at the donut's foot: it's drawn at two thirds of
+     its box, so its lowest point is a sixth of the box up from the
+     bottom. */
+  .why-shadow {
+    position: absolute;
+    top: 83.3%;
+    left: 25%;
+    display: block;
+    width: 50%;
+    height: 7%;
+    background: radial-gradient(closest-side, rgb(24 34 53 / 0.18), rgb(24 34 53 / 0.06) 60%, transparent);
+    translate: 0 -50%;
+    transform-origin: center;
+    pointer-events: none;
+  }
+
+  /* Each word is its own box, so its line can move as one. The box
+     reaches a little past the line (padding, cancelled by margins) so
+     descenders always have room. */
+  .why-w {
+    display: inline-block;
+    vertical-align: top;
+    padding: 0 0.1em 0.14em;
+    margin: 0 -0.1em -0.14em;
+  }
+
+  .why-wi {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  /* Only the heading shows until the script takes over, so the others
+     don't flash. */
+  @media (prefers-reduced-motion: no-preference) {
+    .why-statement + .why-statement .why-wi {
+      visibility: hidden;
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .why {
+      height: auto;
+    }
+    .why-stage {
+      position: relative;
+      min-height: 0;
+    }
+    .why-statements {
+      gap: clamp(20px, 2.4vw, 40px);
+    }
+    .why-statement {
+      grid-area: auto;
+    }
+    .why-lane {
+      display: none;
+    }
+  }
+</style>

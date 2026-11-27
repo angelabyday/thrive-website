@@ -1,0 +1,120 @@
+---
+/* "What we are": a rounded cream panel with navy type, set on orange. The label, then the heading across the panel; under
+   it, two short paragraphs side by side; then a closing
+   statement set big across the full width. On narrow screens it's one
+   column. */
+interface Props {
+  kicker: string;
+  heading: string;
+  body: string[];
+  close: string;
+}
+const { kicker, heading, body, close } = Astro.props;
+---
+
+<section id="what-we-are" class="wwa">
+  <div class="wwa-panel">
+    <div class="wwa-head">
+      <p class="wwa-kicker">{kicker}</p>
+      <h2 class="wwa-heading">{heading}</h2>
+    </div>
+
+    <div class="wwa-columns">
+      {body.map((p) => <p>{p}</p>)}
+    </div>
+
+    <p class="wwa-close">{close}</p>
+  </div>
+</section>
+
+<style>
+  .wwa {
+    --gutter: clamp(24px, 3vw, 48px);
+    padding: var(--gutter);
+    background: #eb573d;
+  }
+
+  .wwa-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-areas:
+      'head head'
+      'copy copy'
+      'close close';
+    gap: clamp(24px, 2.4vw, 40px) clamp(24px, 4vw, 72px);
+    /* Less the gap round the panel, so the content lines up with the
+       other sections. */
+    padding: clamp(40px, 6vw, 112px) max(16px, calc(var(--pad-x) - var(--gutter)));
+    border-radius: clamp(16px, 1.8vw, 28px);
+    background: #fff2e6;
+    color: #182235;
+  }
+
+  .wwa-head {
+    grid-area: head;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 1.6vw, 24px);
+  }
+
+  .wwa-kicker {
+    margin: 0;
+    /* Same as the other section labels. */
+    font-size: clamp(16px, 1.3vw, 20px);
+  }
+
+  .wwa-heading {
+    max-width: 18em;
+    margin: 0;
+    font-size: clamp(32px, 4vw, 72px);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  /* Directly under the heading, from its left edge, about as wide as it. */
+  .wwa-columns {
+    grid-area: copy;
+    max-width: 60rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px clamp(24px, 3vw, 48px);
+    font-size: clamp(17px, 1.3vw, 20px);
+    line-height: 1.5;
+  }
+
+  .wwa-columns p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  /* The closing statement, big, across the panel. */
+  .wwa-close {
+    grid-area: close;
+    max-width: 14em;
+    /* More room above the closing statement than between the heading
+       and its paragraphs. */
+    margin: clamp(16px, 2.4vw, 40px) 0 0;
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(40px, 6.6vw, 120px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  @media (max-width: 899px) {
+    .wwa-panel {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'head'
+        'copy'
+        'close';
+    }
+  }
+
+  @media (max-width: 639px) {
+    .wwa-columns {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
