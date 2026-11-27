@@ -10,6 +10,11 @@ interface Props {
   close: string;
 }
 const { kicker, heading, body, close } = Astro.props;
+
+/* The closing statement's last word ("changed") turns into glass shapes
+   as it scrolls past, like the footer's "Change". */
+const m = close.match(/^(.*\s)(\S+?)(\W*)$/);
+const [before, word, after] = m ? [m[1], m[2], m[3]] : [close, '', ''];
 ---
 
 <section id="what-we-are" class="wwa">
@@ -23,9 +28,56 @@ const { kicker, heading, body, close } = Astro.props;
       {body.map((p) => <p>{p}</p>)}
     </div>
 
-    <p class="wwa-close">{close}</p>
+    <p class="wwa-close" data-wwa-change>
+      {before}<span class="wwa-word" data-word>
+        <span class="visually-hidden">{word}</span>
+        {
+          Array.from(word).map((c) => (
+            <span class="wwa-letter" data-letter aria-hidden="true">
+              <span class="wwa-glyph" data-glyph>{c}</span>
+            </span>
+          ))
+        }
+      </span>{after}
+      <span class="wwa-depth" data-depth aria-hidden="true"></span>
+    </p>
   </div>
 </section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { mountChangeWord } from '../scripts/glass/changeWord';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* As the closing statement scrolls up the screen, the letters of its
+     last word turn into glass shapes one after another, then back into
+     letters, in order, as it carries on up. Scrolling back down runs it
+     in reverse. Each letter's window is a share of the scroll. With
+     reduced motion the word stays as type. */
+  const close = document.querySelector<HTMLElement>('[data-wwa-change]');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (close && !reduce) {
+    const word = mountChangeWord(close, '#FFF2E6', { pointer: false });
+    const n = word.count;
+    const on: boolean[] = [];
+    ScrollTrigger.create({
+      trigger: close,
+      start: 'top 85%',
+      end: 'bottom 15%',
+      onUpdate: ({ progress: p }) => {
+        for (let i = 0; i < n; i++) {
+          const want = p > 0.2 + i * 0.04 && p < 0.62 + i * 0.04;
+          if (want !== !!on[i]) {
+            on[i] = want;
+            word.swap(i, want);
+          }
+        }
+      },
+    });
+  }
+</script>
 
 <style>
   .wwa {
@@ -90,16 +142,54 @@ const { kicker, heading, body, close } = Astro.props;
   /* The closing statement, big, across the panel. */
   .wwa-close {
     grid-area: close;
-    max-width: 14em;
+    max-width: 24em;
     /* More room above the closing statement than between the heading
        and its paragraphs. */
     margin: clamp(16px, 2.4vw, 40px) 0 0;
     font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
     font-weight: 700;
-    font-size: clamp(40px, 6.6vw, 120px);
+    /* Smaller than the section's heading. */
+    font-size: clamp(26px, 3vw, 52px);
     line-height: 1.05;
     letter-spacing: -0.015em;
     text-wrap: balance;
+    /* Holds the canvas the shapes are drawn on. */
+    position: relative;
+  }
+
+  /* The word, kept on one line, each letter in a box of its own that
+     opens to a shape's width as the shape comes in. */
+  .wwa-word {
+    white-space: nowrap;
+  }
+
+  .wwa-letter,
+  .wwa-glyph {
+    display: inline-block;
+  }
+
+  /* Over the statement with room to spare round it, as the shapes tilt
+     out past the letters. */
+  .wwa-depth {
+    position: absolute;
+    inset: -0.6em -0.4em;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .wwa-depth :global(canvas) {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   @media (max-width: 899px) {
