@@ -1,10 +1,10 @@
 ---
 /* "Why we're here": one big statement at a time on a mint panel, held on
-   screen while the page scrolls. The heading goes first; as you scroll,
-   each following statement takes its place. Lines slide in from the left
-   one after another and leave to the right.
+   screen while the page scrolls. The statements are slides side by side:
+   the heading goes first, and as you scroll each following statement
+   slides in from the right, pushing the one before off to the left.
 
-   The words lead. Nothing else moves until the last statement is in:
+   The words lead. Nothing else moves until the last slide is in:
    then one glass donut comes in off the top left, arcing down in front
    of the words, lands under them and bounces off to the right.
 
@@ -40,22 +40,18 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
         </span>
       </div>
       <div class="why-statements" data-why-statements>
+        <div class="why-track" data-why-track>
         {
           statements.map((words, i) => {
             const Tag = i === 0 ? 'h2' : 'p';
             return (
               <Tag class="why-statement" data-why-statement>
-                {words.map((w) => (
-                  <>
-                    <span class="why-w">
-                      <span class="why-wi">{w}</span>
-                    </span>{' '}
-                  </>
-                ))}
+                {words.join(' ')}
               </Tag>
             );
           })
         }
+        </div>
       </div>
     </div>
   </div>
@@ -82,24 +78,13 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     if (reduce || !stage || !lane || !roller || !donut || !block) return;
 
     const statements = [...section.querySelectorAll<HTMLElement>('[data-why-statement]')];
-    const words = statements.map((s) => [...s.querySelectorAll<HTMLElement>('.why-wi')]);
+    const track = section.querySelector<HTMLElement>('[data-why-track]');
     const last = statements[statements.length - 1];
+    if (!track) return;
 
-    /* Which line each word sits on, by layout, so a statement's lines can
-       move one after another, and where the donut's lane goes: under the
-       last statement. Worked out again when the width changes, as the
-       lines wrap differently. */
-    const lineOf = new Map<HTMLElement, number>();
+    /* Where the donut's lane goes: under the last statement. Worked out
+       again when the width changes, as the lines wrap differently. */
     const measure = () => {
-      statements.forEach((s, i) => {
-        const tops: number[] = [];
-        words[i].forEach((w) => {
-          const top = Math.round((w.parentElement as HTMLElement).offsetTop);
-          let n = tops.findIndex((t) => Math.abs(t - top) < 4);
-          if (n < 0) n = tops.push(top) - 1;
-          lineOf.set(w, n);
-        });
-      });
       lane.style.top = `${block.offsetTop + last.offsetTop + last.offsetHeight}px`;
     };
     measure();
@@ -171,92 +156,60 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
       drop.eventCallback('onComplete', hide);
     };
 
-    /* A delay per word from its line, for GSAP's stagger. */
-    const byLine = (step: number) => (_i: number, el: HTMLElement) => (lineOf.get(el) ?? 0) * step;
-    /* Lines slide in from the left and out to the right; the distance is
-       a share of the type size. */
-    const shift = () => parseFloat(getComputedStyle(statements[0]).fontSize) * 0.9;
-    gsap.set(words.slice(1).flat(), { x: () => -shift(), autoAlpha: 0 });
+    /* The statements are slides side by side. As the page scrolls, each
+       slides in from the right in turn, pushing the one before off to the
+       left, with a pause on each. The last slide cues the donut, and the
+       section holds a while for it before letting go. */
+    const n = statements.length;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 0.6,
+        invalidateOnRefresh: true,
+        onRefresh: measure,
+      },
+    });
+    tl.to({}, { duration: 0.5 });
+    for (let k = 1; k < n; k++) {
+      tl.to(track, { xPercent: -100 * k, duration: 1, ease: 'power2.inOut' });
+      if (k === n - 1) tl.addLabel('bounce', '-=0.3');
+      tl.to({}, { duration: 0.5 });
+    }
+    tl.to({}, { duration: 0.8 });
 
-    /* The heading shows first. A short scroll moves on to the next
-       statement, which then plays through on its own: the one on screen
-       slides out a line at a time, the next slides in. Scrolling back
-       steps back the same way. The scroll only picks which statement
-       shows; the change runs at its own pace, so a little scroll is
-       enough. The donut is cued as the last statement comes in. */
-    let current = 0;
-    let change: ReturnType<typeof gsap.timeline> | null = null;
-    const show = (next: number) => {
-      if (next === current) return;
-      const from = current;
-      current = next;
-      change?.progress(1).kill();
-      change = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      change.to(words[from], { x: () => shift(), autoAlpha: 0, duration: 0.4, ease: 'power2.in', stagger: byLine(0.06) });
-      change.fromTo(
-        words[next],
-        { x: () => -shift(), autoAlpha: 0 },
-        { x: 0, autoAlpha: 1, duration: 0.6, stagger: byLine(0.1) },
-        '>-0.1',
-      );
-      if (next === statements.length - 1) {
-        change.call(play, [], '<');
-      } else {
-        drop?.kill();
-        hide();
-      }
-    };
-
-    /* The section is a short run of scroll per statement, plus a hold at
-       the end for the donut; which stretch you're in picks the statement. */
-    /* The stop the scroll last rested on (see the snapping, below). */
-    let rest = 0;
-    const st = ScrollTrigger.create({
+    /* The scroll only starts the donut, as the last slide arrives; it
+       bounces through at its own pace. Scroll back before that and it's
+       reset, ready to go again. */
+    let played = false;
+    ScrollTrigger.create({
       trigger: section,
       start: 'top top',
       end: 'bottom bottom',
-      invalidateOnRefresh: true,
-      onRefresh: measure,
-      onEnter: () => (rest = 0),
-      onEnterBack: () => (rest = statements.length),
       onUpdate: (self) => {
-        const n = statements.length;
-        /* One stretch per statement after the first, and one to hold. */
-        const step = Math.min(n - 1, Math.floor(self.progress * n));
-        show(step);
+        const cue = (tl.labels.bounce ?? tl.duration()) / tl.duration();
+        if (!played && self.progress >= cue) {
+          played = true;
+          play();
+        } else if (played && self.progress < cue - 0.02) {
+          played = false;
+          drop?.kill();
+          hide();
+        }
       },
-    });
-
-    /* Snapping: when the scroll comes to rest part-way through, it
-       carries on to the next statement in the direction you were going,
-       one statement from the last one it rested on, so one small scroll
-       moves exactly one statement. A nudge too small to count settles
-       back. The last stop is the end of the section, where the page
-       carries on. */
-    const n = statements.length;
-    const stops = [...statements.map((_, k) => k / n + 0.002), 1];
-    const go = (k: number) => {
-      rest = Math.max(0, Math.min(stops.length - 1, k));
-      const target = st.start + stops[rest] * (st.end - st.start);
-      if (Math.abs(target - window.scrollY) < 3) return;
-      const lenis = (window as unknown as { lenis?: { scrollTo: (y: number, o?: object) => void } }).lenis;
-      if (lenis) lenis.scrollTo(target, { duration: 0.6 });
-      else window.scrollTo({ top: target, behavior: 'smooth' });
-    };
-    ScrollTrigger.addEventListener('scrollEnd', () => {
-      if (!st.isActive) return;
-      const p = st.progress;
-      if (p <= 0.002 || p >= 0.998) return;
-      const at = p * n;
-      const here = stops[rest] * n;
-      if (at > here + 0.2) go(rest + 1);
-      else if (at < here - 0.2) go(rest - 1);
-      else go(rest);
     });
   });
 </script>
 
 <style>
+  /* Desktop: the border round the panel twice as wide. */
+  @media (min-width: 1024px) {
+    .why {
+      --gutter: clamp(48px, 6vw, 96px) !important;
+    }
+  }
+
   /* The panel is mint with rounded corners, held a gutter in from the
      window's edges. Tall enough for a screen of scroll per change, then
      the roll and a hold. */
@@ -265,9 +218,9 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     --donut: clamp(127px, min(15.8vw, 24.5svh), 288px);
     position: relative;
     box-sizing: border-box;
-    /* A short stretch of scroll (about a third of a screen) per
-       statement, plus a hold at the end for the donut. */
-    height: calc(100svh + (var(--steps) + 1) * 35svh);
+    /* About two-thirds of a screen of scroll per slide, plus a hold at the
+       end for the donut. */
+    height: calc(100svh + var(--steps) * 65svh + 50svh);
     padding: var(--gutter);
     /* Runs up under the hero's rounded bottom corners, so cream shows
        behind them. */
@@ -339,9 +292,17 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     clip-path: inset(-50vh calc(-1 * max(16px, calc(var(--pad-x) - var(--gutter)))));
   }
 
+  /* The statements side by side, each a full slide wide; the script
+     moves the row along. */
+  .why-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    align-items: center;
+    will-change: transform;
+  }
+
   .why-statement {
-    grid-area: 1 / 1;
-    align-self: center;
     max-width: 16em;
     margin: 0;
     font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
@@ -395,30 +356,6 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     pointer-events: none;
   }
 
-  /* Each word is its own box, so its line can move as one. The box
-     reaches a little past the line (padding, cancelled by margins) so
-     descenders always have room. */
-  .why-w {
-    display: inline-block;
-    vertical-align: top;
-    padding: 0 0.1em 0.14em;
-    margin: 0 -0.1em -0.14em;
-  }
-
-  .why-wi {
-    display: inline-block;
-    will-change: transform;
-  }
-
-  /* Only the heading shows until the script takes over, so the others
-     don't flash. */
-  @media (prefers-reduced-motion: no-preference) {
-    .why-statement + .why-statement .why-wi {
-      visibility: hidden;
-      opacity: 0;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .why {
       height: auto;
@@ -430,8 +367,9 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     .why-statements {
       gap: clamp(20px, 2.4vw, 40px);
     }
-    .why-statement {
-      grid-area: auto;
+    .why-track {
+      grid-auto-flow: row;
+      gap: clamp(20px, 2.4vw, 40px);
     }
     .why-lane {
       display: none;
