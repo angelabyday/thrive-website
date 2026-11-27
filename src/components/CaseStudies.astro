@@ -9,8 +9,11 @@ interface Case {
   title: string;
   href: string;
   /* A photo or still for the tile, when there is one. */
-  image?: string;
+  image?: ImageMetadata;
 }
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
 interface Props {
   heading: string;
   cases: Case[];
@@ -37,7 +40,16 @@ const looks = [
               <div class="case-tile">
                 {c.image ? (
                   <>
-                    <img src={c.image} alt="" loading="lazy" />
+                    <Picture
+                      src={c.image}
+                      alt=""
+                      formats={['avif', 'webp']}
+                      fallbackFormat="jpg"
+                      widths={[400, 600, 800, 1100].filter((w) => w <= c.image!.width)}
+                      sizes="(max-width: 639px) 100vw, (max-width: 1199px) 50vw, 33vw"
+                      loading="lazy"
+                      decoding="async"
+                    />
                     <div class="case-panel">
                       <p class="case-panel-title">{c.title}</p>
                     </div>
@@ -113,6 +125,11 @@ const looks = [
     border-radius: clamp(20px, 2vw, 32px);
     background: var(--bg);
     color: var(--ink);
+  }
+
+  /* The <picture> round the image takes no part in the layout. */
+  .case-tile :global(picture) {
+    display: contents;
   }
 
   .case-tile img {

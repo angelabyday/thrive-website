@@ -17,17 +17,13 @@ const nav = [
   <header class="hero-nav">
     <a href="#top" class="hero-logo" aria-label="Thrive home"></a>
     <div class="hero-actions">
-      {/* The links in a yellow pill, with an orange highlight that slides
-          to whichever link is hovered or focused and fades away when you
-          leave. Orange links on the yellow; the highlighted one yellow on
-          the orange. */}
-      <nav aria-label="Main" class="nav-pill" data-nav-pill>
-        <span class="nav-slide" aria-hidden="true" data-nav-slide></span>
+      {/* The menu: each link its own lozenge on the bar. */}
+      <nav aria-label="Main" class="nav-pill">
         <ul>
           {
             nav.map((item) => (
               <li>
-                <a href={item.href} data-nav-link>
+                <a href={item.href}>
                   {item.label}
                 </a>
               </li>
@@ -95,50 +91,6 @@ const nav = [
 <script>
   import { mountGlass } from '../scripts/glass/glass';
 
-  /* The nav's sliding highlight: it comes up on a hovered or focused
-     link, slides between links, and fades away when you leave. */
-  document.querySelectorAll<HTMLElement>('[data-nav-pill]').forEach((pill) => {
-    const slide = pill.querySelector<HTMLElement>('[data-nav-slide]');
-    const links = [...pill.querySelectorAll<HTMLAnchorElement>('[data-nav-link]')];
-    if (!slide || !links.length) return;
-    let current: HTMLAnchorElement | null = null;
-    /* Measured against the pill itself, which the highlight sits in. */
-    const place = (link: HTMLAnchorElement) => {
-      const p = pill.getBoundingClientRect();
-      const r = link.getBoundingClientRect();
-      slide.style.left = `${r.left - p.left}px`;
-      slide.style.width = `${r.width}px`;
-    };
-    const show = (link: HTMLAnchorElement) => {
-      /* Coming up from nothing, it appears in place rather than sliding
-         in from where it last was. */
-      if (!current) {
-        slide.style.transition = 'opacity 0.2s ease';
-        place(link);
-        slide.getBoundingClientRect();
-        slide.style.transition = '';
-      } else {
-        place(link);
-      }
-      current = link;
-      slide.classList.add('is-on');
-      links.forEach((l) => l.toggleAttribute('data-active', l === link));
-    };
-    const hide = () => {
-      current = null;
-      slide.classList.remove('is-on');
-      links.forEach((l) => l.removeAttribute('data-active'));
-    };
-    links.forEach((link) => {
-      link.addEventListener('pointerenter', () => show(link));
-      link.addEventListener('focus', () => show(link));
-    });
-    pill.addEventListener('pointerleave', hide);
-    pill.addEventListener('focusout', (e) => {
-      if (!pill.contains(e.relatedTarget as Node)) hide();
-    });
-  });
-
   const hero = document.querySelector<HTMLElement>('.hero');
   const canvas = hero?.querySelector<HTMLCanvasElement>('.hero-canvas');
   if (hero && canvas) mountGlass(hero, canvas);
@@ -183,8 +135,11 @@ const nav = [
       }
     };
     const queue = () => {
-      header.toggleAttribute('data-stuck', window.scrollY > 0);
-      if (!queued) {
+      const stuck = window.scrollY > 0;
+      header.toggleAttribute('data-stuck', stuck);
+      /* Once stuck, the bar is cream with its own colours, so there's
+         nothing behind it to check. */
+      if (!stuck && !queued) {
         queued = true;
         requestAnimationFrame(update);
       }
@@ -255,54 +210,9 @@ const nav = [
     /* Shared by the menu pill and the "Talk to us" button, so they're
        the same height. */
     --bar: max(44px, 2.6em);
-    /* Pulled out from the content's side padding to the nav's own inset,
-       so the logo and buttons sit as far from the sides as from the top. */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     font-size: clamp(15px, 1.15vw, 20px);
-  }
-
-  /* Its place in the hero: as tall as the header bar. */
-  .hero-nav-space {
-    height: calc(max(44px, 2.6em) + 0.5em);
-    font-size: clamp(15px, 1.15vw, 20px);
-  }
-
-  .hero-logo {
-    display: block;
-    width: clamp(96px, 8vw, 150px);
-    aspect-ratio: 631.6 / 144.62;
-    background: var(--nav-ink, var(--yellow));
-    transition: background-color 0.25s ease;
-    mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
-    -webkit-mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
-  }
-
-  /* The pill and its sliding highlight. */
-  .nav-pill {
-    position: relative;
-    display: flex;
-    box-sizing: border-box;
-    height: var(--bar);
-    padding: 0.25em;
-    border-radius: 999px;
-    background: var(--yellow);
-  }
-
-  .nav-pill ul {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  /* All in one bar: a yellow lozenge across the top, the logo on the
-     left, the menu and "Talk to us" together on the right. */
-  .hero-nav {
+    /* All in one bar: the logo on the left, the menu and "Talk to us"
+       together on the right. */
     box-sizing: border-box;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
@@ -332,6 +242,72 @@ const nav = [
       right 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
       padding 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
       border-radius 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  /* Its place in the hero: as tall as the header bar. */
+  .hero-nav-space {
+    height: calc(max(44px, 2.6em) + 0.5em);
+    font-size: clamp(15px, 1.15vw, 20px);
+  }
+
+  .hero-logo {
+    display: block;
+    width: clamp(96px, 8vw, 150px);
+    aspect-ratio: 631.6 / 144.62;
+    background: var(--nav-ink, var(--yellow));
+    transition: background-color 0.25s ease;
+    mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
+    -webkit-mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
+    grid-column: 1;
+    grid-row: 1;
+    margin-left: clamp(12px, 1.4vw, 24px);
+  }
+
+  /* The menu sits straight on the bar, in its own column; each link is
+     a lozenge as tall as "Talk to us". */
+  .nav-pill {
+    position: relative;
+    display: flex;
+    box-sizing: border-box;
+    grid-column: 3;
+    grid-row: 1;
+    height: var(--item);
+    border-radius: 999px;
+  }
+
+  .nav-pill ul {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0.48em;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav-pill a {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0 1.05em;
+    border-radius: 999px;
+    background: var(--nav-ink, var(--yellow));
+    color: var(--nav-text, var(--orange));
+    font-size: 0.95em;
+    font-weight: 400;
+    text-decoration: none;
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .nav-pill a:hover {
+    transform: scale(1.04);
+  }
+
+  .hero-nav .nav-pill a:focus-visible {
+    outline-color: var(--nav-ink, var(--yellow));
+    outline-offset: 2px;
   }
 
   /* When "Talk to us" is hovered, its arrow disc rolls out to the right;
@@ -384,8 +360,7 @@ const nav = [
     background: var(--orange);
   }
 
-  .hero-nav[data-stuck] .nav-pill a,
-  .hero-nav[data-stuck] .nav-pill a[data-active] {
+  .hero-nav[data-stuck] .nav-pill a {
     background: #182235;
     color: #fff2e6;
   }
@@ -395,133 +370,28 @@ const nav = [
     color: #fff2e6 !important;
   }
 
-
-
-  .hero-nav .hero-logo {
-    grid-column: 1;
-    grid-row: 1;
-    margin-left: clamp(12px, 1.4vw, 24px);
-  }
-
-  /* The menu and the button each take their own column. */
-  .hero-nav .hero-actions {
+  /* The menu and the button each take their own column in the bar. */
+  .hero-actions {
     display: contents;
   }
 
-  /* The menu's hover highlight matches "Talk to us": the same height and
-     the same gap from the bar's edge. */
-  .hero-nav .nav-pill {
-    grid-column: 3;
-    grid-row: 1;
-    height: var(--item);
-  }
-
-  /* The menu links and "Talk to us" a weight up from body text. */
-  .hero-nav .nav-pill a,
-  .hero-nav .cta-label {
-    font-size: 0.95em;
-    font-weight: 500;
-  }
-
-  /* The menu links at regular weight; "Talk to us" stays at 500. */
-  .hero-nav .nav-pill a {
-    font-weight: 400;
-  }
-
-  /* Every link is its own orange lozenge with yellow type, like "Talk to
-     us", so the sliding highlight isn't needed. */
-  .hero-nav .nav-slide {
-    display: none;
-  }
-
-  .hero-nav .nav-pill ul {
-    gap: 0.48em;
-  }
-
-  .hero-nav .nav-pill a,
-  .hero-nav .nav-pill a[data-active] {
-    background: var(--nav-ink, var(--yellow));
-    color: var(--nav-text, var(--orange));
-    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.2, 1);
-  }
-
-  .hero-nav .nav-pill a:hover {
-    transform: scale(1.04);
-  }
-
-  .hero-nav .nav-pill a:focus-visible {
-    outline-color: var(--nav-ink, var(--yellow));
-    outline-offset: 2px;
-  }
-
-  /* Smaller than the bar, with room round it, so it sits inside the bar
-     rather than filling its end. */
+  /* "Talk to us": smaller than the bar, with room round it, so it sits
+     inside the bar rather than filling its end; in the outline's colour
+     with type to match. */
   .hero-nav .cta {
     --cta-size: var(--item);
+    --cta-bg: var(--nav-ink, var(--yellow));
     grid-column: 4;
     grid-row: 1;
     /* With the bar's own padding, the same gap at the right as above and
        below. */
     margin-right: calc((var(--bar) + 0.5em - var(--item)) / 2 - 0.25em);
-  }
-
-  /* The menu sits straight on the bar. */
-  .hero-nav .nav-pill {
-    padding: 0;
-    background: none;
-  }
-
-  /* "Talk to us" in orange with yellow type, to stand out on the bar. */
-  .hero-nav .cta {
-    --cta-bg: var(--nav-ink, var(--yellow));
     color: var(--nav-text, var(--orange)) !important;
   }
 
-  /* The menu and the call to action, side by side. */
-  .hero-actions {
-    display: flex;
-    align-items: center;
-    gap: clamp(10px, 1vw, 16px);
-  }
-
-  .nav-slide {
-    position: absolute;
-    top: 0.25em;
-    bottom: 0.25em;
-    left: 0;
-    width: 0;
-    border-radius: 999px;
-    background: var(--orange);
-    opacity: 0;
-    transition:
-      left 0.35s cubic-bezier(0.3, 0.7, 0.2, 1),
-      width 0.35s cubic-bezier(0.3, 0.7, 0.2, 1),
-      opacity 0.2s ease;
-  }
-
-  .nav-slide.is-on {
-    opacity: 1;
-  }
-
-  .nav-pill a {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    box-sizing: border-box;
-    padding: 0 1.05em;
-    border-radius: 999px;
-    color: var(--orange);
-    text-decoration: none;
-    transition: color 0.25s ease;
-  }
-
-  .nav-pill a[data-active] {
-    color: var(--yellow);
-  }
-
-  .nav-pill a:focus-visible {
-    outline: 2px solid var(--yellow);
-    outline-offset: 4px;
+  .hero-nav .cta-label {
+    font-size: 0.95em;
+    font-weight: 500;
   }
 
   /* Call to action: a label pill with an arrow disc joined to it by a
@@ -531,6 +401,7 @@ const nav = [
     display: inline-block;
     border-radius: 999px;
     color: var(--orange) !important;
+    text-decoration: none;
   }
 
   .cta-shape {
@@ -560,10 +431,6 @@ const nav = [
     font-weight: 500;
   }
 
-  .cta {
-    text-decoration: none;
-  }
-
   /* The hero's call to action, a size up from the nav's. */
   .hero-cta {
     margin-top: 0;
@@ -572,6 +439,7 @@ const nav = [
 
   .cta-label {
     padding: 0 1.15em;
+    white-space: nowrap;
   }
 
   .cta-icon {
@@ -618,8 +486,6 @@ const nav = [
     font-size: clamp(15px, 1.15vw, 20px);
   }
 
-  /* The glass shape, centred behind the content. Only marks where the
-     canvas draws it; it has no look of its own. */
   /* The headline over the shape, in a band as tall as the shape, so the
      eyebrow sits above the shape and the button below it. The shape is
      kept within about half the screen's height, so all of it fits on a
@@ -690,13 +556,6 @@ const nav = [
     letter-spacing: -0.01em;
   }
 
-  .hero-button {
-    padding: 0.7em 1.4em;
-    font-size: clamp(16px, 1.2vw, 22px);
-  }
-
-  /* Phones and small tablets: logo and the call to action only. */
-  /* Phones and small tablets: the call to action only. */
   /* No menu on phones and small tablets. */
   @media (max-width: 800px) {
     .nav-pill {
@@ -704,12 +563,7 @@ const nav = [
     }
   }
 
-  .cta-label {
-    white-space: nowrap;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .nav-slide,
     .nav-pill a,
     .cta-icon,
     .cta-icon svg {

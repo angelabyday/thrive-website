@@ -8,10 +8,13 @@
 interface Person {
   name: string;
   role: string;
-  photo?: string;
+  photo?: ImageMetadata;
   bg: string;
   ink: string;
 }
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
 interface Props {
   kicker: string;
   heading: string;
@@ -43,7 +46,15 @@ const initials = (name: string) =>
         <li class="wwr-person">
           <div class="wwr-portrait" style={`--bg: ${p.bg}; --ink: ${p.ink}`}>
             {p.photo ? (
-              <img src={p.photo} alt="" loading="lazy" />
+              <Picture
+                src={p.photo}
+                alt=""
+                formats={['avif', 'webp']}
+                fallbackFormat="jpg"
+                width={400}
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <span class="wwr-initials" aria-hidden="true">
                 {initials(p.name)}
@@ -136,6 +147,10 @@ const initials = (name: string) =>
     border-radius: clamp(16px, 1.8vw, 28px);
     background: var(--bg);
     color: var(--ink);
+  }
+
+  .wwr-portrait :global(picture) {
+    display: contents;
   }
 
   .wwr-portrait img {
