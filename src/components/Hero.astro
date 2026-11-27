@@ -288,10 +288,30 @@ const nav = [
     font-weight: 500;
   }
 
-  /* The highlight fills the menu's height in the bar. */
+  /* Every link is its own orange lozenge with yellow type, like "Talk to
+     us", so the sliding highlight isn't needed. */
   .hero-nav .nav-slide {
-    top: 0;
-    bottom: 0;
+    display: none;
+  }
+
+  .hero-nav .nav-pill ul {
+    gap: 0.3em;
+  }
+
+  .hero-nav .nav-pill a,
+  .hero-nav .nav-pill a[data-active] {
+    background: var(--orange);
+    color: var(--yellow);
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .hero-nav .nav-pill a:hover {
+    transform: scale(1.04);
+  }
+
+  .hero-nav .nav-pill a:focus-visible {
+    outline-color: var(--orange);
+    outline-offset: 2px;
   }
 
   /* Smaller than the bar, with room round it, so it sits inside the bar
