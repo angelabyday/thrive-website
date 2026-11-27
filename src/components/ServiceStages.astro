@@ -180,6 +180,28 @@ const looks = [
     height: 100%;
     z-index: 1;
     pointer-events: none;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* iOS Safari draws a canvas through a hidden back face, so the shape
+       would show, mirrored, over the description. Hide it halfway
+       through the turn, when the card is edge on. */
+    transition: visibility 0s linear 0.3s;
+  }
+
+  .stage[data-flipped] .stage-canvas {
+    visibility: hidden;
+  }
+
+  @media (hover: hover) {
+    .stage:hover .stage-canvas {
+      visibility: hidden;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage-canvas {
+      transition: none;
+    }
   }
 
   /* Marks where the canvas draws the shape: top right, held in from the
