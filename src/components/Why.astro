@@ -173,7 +173,11 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     });
     tl.to({}, { duration: 0.5 });
     for (let k = 1; k < n; k++) {
-      tl.to(track, { xPercent: -86 * k, duration: 1, ease: 'power2.inOut' });
+      tl.to(track, {
+        x: () => -k * (track.offsetWidth + parseFloat(getComputedStyle(track).columnGap)),
+        duration: 1,
+        ease: 'power2.inOut',
+      });
       if (k === n - 1) tl.addLabel('bounce', '-=0.3');
       tl.to({}, { duration: 0.5 });
     }
@@ -296,13 +300,14 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
 
   /* The statements side by side, each a full slide wide; the script
      moves the row along. */
-  /* Each slide a little narrower than the panel, so the start of the
-     next one always pokes in at the right-hand edge. */
+  /* Each slide the full width, with a gap between them as wide as the
+     panel's side padding, so the next slide waits just past the panel's
+     edge and nothing peeks in. */
   .why-track {
-    --slide: 86%;
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: var(--slide);
+    grid-auto-columns: 100%;
+    column-gap: max(16px, calc(var(--pad-x) - var(--gutter)));
     align-items: center;
     will-change: transform;
   }
