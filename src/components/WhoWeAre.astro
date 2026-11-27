@@ -1,0 +1,157 @@
+---
+/* "Who we are": the copy on the left, and the two founders as tall
+   portrait cards side by side on the right, each with a name and role
+   underneath. Until there are photos, each card is a flat brand-colour
+   pair with the founder's initials set big; give a person a `photo` and
+   it fills the card instead. One column on phones, the portraits after
+   the heading. */
+interface Person {
+  name: string;
+  role: string;
+  photo?: string;
+  bg: string;
+  ink: string;
+}
+interface Props {
+  kicker: string;
+  heading: string;
+  body: string[];
+  people: Person[];
+}
+const { kicker, heading, body, people } = Astro.props;
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('');
+---
+
+<section id="who-we-are" class="wwr">
+  <div class="wwr-copy">
+    <p class="wwr-kicker">{kicker}</p>
+    <h2 class="wwr-heading">{heading}</h2>
+    <div class="wwr-body">
+      {body.map((p) => <p>{p}</p>)}
+    </div>
+  </div>
+
+  <ul class="wwr-people">
+    {
+      people.map((p) => (
+        <li class="wwr-person">
+          <div class="wwr-portrait" style={`--bg: ${p.bg}; --ink: ${p.ink}`}>
+            {p.photo ? (
+              <img src={p.photo} alt="" loading="lazy" />
+            ) : (
+              <span class="wwr-initials" aria-hidden="true">
+                {initials(p.name)}
+              </span>
+            )}
+          </div>
+          <p class="wwr-name">{p.name}</p>
+          <p class="wwr-role">{p.role}</p>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .wwr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: clamp(32px, 5vw, 96px);
+    align-items: start;
+    padding: clamp(56px, 7vw, 120px) var(--pad-x);
+    background: #fff2e6;
+    color: #182235;
+  }
+
+  .wwr-copy {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 1.6vw, 24px);
+  }
+
+  .wwr-kicker {
+    margin: 0;
+    font-size: clamp(16px, 1.3vw, 20px);
+  }
+
+  .wwr-heading {
+    margin: 0;
+    font-size: clamp(32px, 3.6vw, 64px);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .wwr-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    max-width: 34em;
+    font-size: clamp(17px, 1.3vw, 20px);
+    line-height: 1.5;
+  }
+
+  .wwr-body p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  .wwr-people {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(12px, 1.5vw, 24px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .wwr-portrait {
+    container-type: inline-size;
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: clamp(16px, 1.8vw, 28px);
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .wwr-portrait img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .wwr-initials {
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 42cqw;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .wwr-name {
+    margin: clamp(12px, 1.2vw, 18px) 0 0;
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(20px, 1.8vw, 30px);
+    line-height: 1.1;
+  }
+
+  .wwr-role {
+    margin: 4px 0 0;
+    font-size: clamp(15px, 1.1vw, 18px);
+  }
+
+  @media (max-width: 899px) {
+    .wwr {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
