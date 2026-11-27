@@ -49,9 +49,13 @@ const initials = (name: string) =>
                 {initials(p.name)}
               </span>
             )}
+            {/* Name and role on a panel over the bottom of the photo, as on
+                the case study tiles, but always showing. */}
+            <div class="wwr-panel">
+              <p class="wwr-name">{p.name}</p>
+              <p class="wwr-role">{p.role}</p>
+            </div>
           </div>
-          <p class="wwr-name">{p.name}</p>
-          <p class="wwr-role">{p.role}</p>
         </li>
       ))
     }
@@ -144,8 +148,20 @@ const initials = (name: string) =>
     letter-spacing: -0.02em;
   }
 
+  .wwr-panel {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    box-sizing: border-box;
+    padding: clamp(12px, 1.2vw, 20px) clamp(14px, 1.4vw, 22px);
+    border-radius: clamp(14px, 1.4vw, 22px);
+    background: var(--bg);
+    color: var(--ink);
+  }
+
   .wwr-name {
-    margin: clamp(12px, 1.2vw, 18px) 0 0;
+    margin: 0;
     font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
     font-weight: 700;
     font-size: clamp(20px, 1.8vw, 30px);
@@ -171,10 +187,25 @@ const initials = (name: string) =>
     }
   }
 
-  /* 30% less between paragraphs on phones. */
+  /* 30% less between paragraphs on phones, and a smaller name panel on
+     the narrower photos. */
   @media (max-width: 639px) {
     .wwr-body {
       gap: 0.7em;
+    }
+    .wwr-panel {
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+    }
+    .wwr-name {
+      font-size: 15px;
+    }
+    .wwr-role {
+      margin-top: 2px;
+      font-size: 13px;
     }
   }
 </style>
