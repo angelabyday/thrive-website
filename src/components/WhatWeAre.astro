@@ -205,6 +205,8 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
   @media (max-width: 639px) {
     .wwa-columns {
       grid-template-columns: 1fr;
+      /* 30% less between paragraphs on phones. */
+      row-gap: 17px;
     }
   }
 </style>

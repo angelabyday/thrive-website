@@ -154,4 +154,11 @@ const initials = (name: string) =>
       grid-template-columns: 1fr;
     }
   }
+
+  /* 30% less between paragraphs on phones. */
+  @media (max-width: 639px) {
+    .wwr-body {
+      gap: 0.7em;
+    }
+  }
 </style>

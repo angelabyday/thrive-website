@@ -190,6 +190,14 @@ const { heading, body, email } = Astro.props;
     outline-offset: 4px;
   }
 
+  /* 30% less between paragraphs on phones (the copy's gap is 16px
+     there). */
+  @media (max-width: 639px) {
+    .talk-text + .talk-text {
+      margin-top: -5px;
+    }
+  }
+
   /* Phones and small tablets: as tall as its content. */
   @media (max-width: 900px) {
     .talk-panel {
