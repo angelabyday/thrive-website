@@ -31,7 +31,7 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
     </div>
 
     <p class="wwa-close">
-      {first && <span class="wwa-line">{first}</span>}{first && ' '}<span class="wwa-line">{rest}<span class="wwa-changed">{word}</span>{after}</span>
+      {first && <span class="wwa-line">{first}</span>}{first && ' '}<span class="wwa-line">{rest}<span class="wwa-changed">{word}{after}</span></span>
     </p>
   </div>
 </section>
@@ -160,7 +160,7 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
      orange, blue with navy, navy with blue. Still for reduced motion. */
   .wwa-changed {
     display: inline-block;
-    padding: 0 0.14em 0.04em;
+    padding: 0 0.14em 0.14em;
     border-radius: 0.18em;
     background: #eb573d;
     color: #f9e07a;
