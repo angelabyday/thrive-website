@@ -62,6 +62,12 @@ const letters = Array.from('Change');
   .footer {
     --ink: #182235;
     --ground: #c6ece2;
+    /* Rounded at the top, tucked up over the cream round "Talk to us" so
+       the cream shows behind the corners. */
+    --round: clamp(16px, 1.8vw, 28px);
+    position: relative;
+    margin-top: calc(-1 * var(--round));
+    border-radius: var(--round) var(--round) 0 0;
     background: var(--ground);
     color: var(--ink);
     font-family: 'Albert Sans', system-ui, sans-serif;
