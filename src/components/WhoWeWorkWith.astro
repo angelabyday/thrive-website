@@ -36,7 +36,10 @@ const cards = sectors.map((name, i) => {
 ---
 
 <section id="who" class="who">
-  <div class="who-panel">
+  <div class="who-panel" data-who-panel>
+  {/* Both columns in one stage, held below the header as a whole while
+      the cards open out (on wider screens). */}
+  <div class="who-stage">
   <div class="who-copy">
   <div class="who-intro">
     <p class="who-kicker">{kicker}</p>
@@ -75,6 +78,7 @@ const cards = sectors.map((name, i) => {
       ))
     }
   </ol>
+  </div>
 
   </div>
 </section>
@@ -106,7 +110,10 @@ const cards = sectors.map((name, i) => {
         scrollTrigger: {
           trigger: list,
           start: 'top 75%',
-          end: 'bottom 85%',
+          /* Open by the time the section lets go: its bottom reaching the
+             bottom of the window. */
+          endTrigger: list.closest('[data-who-panel]') ?? list,
+          end: 'bottom bottom',
           scrub: true,
           invalidateOnRefresh: true,
         },
@@ -132,20 +139,36 @@ const cards = sectors.map((name, i) => {
     /* Square at the top, where it runs on from the cream round the panel
        above; rounded at the bottom. */
     border-radius: 0 0 clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: 'copy cards';
-    column-gap: clamp(24px, 4vw, 72px);
     padding: clamp(56px, 7vw, 120px) var(--pad-x);
     background: #fff2e6;
     color: #182235;
   }
 
+  .who-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'copy cards';
+    column-gap: clamp(24px, 4vw, 72px);
+  }
+
+  /* Wider screens: the whole stage, copy and cards, is held just below
+     the fixed header while the page scrolls on through a stretch of room
+     after it, and the cards open out meanwhile; then it all lets go
+     together. (A spacer, as padding doesn't count as room for it.) */
+  @media (min-width: 900px) {
+    .who-stage {
+      position: sticky;
+      top: var(--header-clear);
+    }
+    .who-panel::after {
+      content: '';
+      display: block;
+      height: 45svh;
+    }
+  }
+
   .who-copy {
     grid-area: copy;
-    position: sticky;
-    /* Held below the fixed header, not under it. */
-    top: var(--header-clear);
     align-self: start;
     display: flex;
     flex-direction: column;
@@ -169,7 +192,7 @@ const cards = sectors.map((name, i) => {
      The copy's wrapper steps aside so its two parts can sit either side
      of the cards, and nothing is held. */
   @media (max-width: 899px) {
-    .who-panel {
+    .who-stage {
       grid-template-columns: 1fr;
       grid-template-areas:
         'intro'
