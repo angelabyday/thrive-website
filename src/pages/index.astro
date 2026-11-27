@@ -149,6 +149,9 @@ const email = 'hello@andwethrive.co.uk';
         /* How far down anything held in place while scrolling should sit,
            to clear the fixed header bar with a little space under it. */
         --header-clear: clamp(84px, calc(5.2vw + 12px), 110px);
+        /* The scrolled header bar's height (it sits flush with the top of
+           the window): its button height plus its padding. */
+        --header-h: calc(max(44px, 2.6 * clamp(15px, 1.15vw, 20px)) + 0.5 * clamp(15px, 1.15vw, 20px));
       }
       /* From small desktops up: 8% of the width, so 82px at 1024 and
          115px at 1440, rising to 200px on very wide screens. */

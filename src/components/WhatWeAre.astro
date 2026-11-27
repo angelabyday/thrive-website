@@ -70,6 +70,13 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
 </script>
 
 <style>
+  /* Desktop: the border round the panel a fifth wider. */
+  @media (min-width: 1024px) {
+    .wwa {
+      --gutter: clamp(29px, 3.6vw, 58px) !important;
+    }
+  }
+
   .wwa {
     --gutter: clamp(24px, 3vw, 48px);
     padding: var(--gutter);
