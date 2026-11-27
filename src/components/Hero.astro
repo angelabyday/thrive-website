@@ -246,13 +246,38 @@ const nav = [
     list-style: none;
   }
 
-  /* All in one bar: a yellow lozenge across the top holding the logo on
-     the left and the menu and "Talk to us" on the right. */
+  /* All in one bar: a yellow lozenge across the top, the menu on the
+     left, the logo in the middle and "Talk to us" on the right. */
   .hero-nav {
     box-sizing: border-box;
-    padding: 0.25em 0.25em 0.25em clamp(16px, 1.6vw, 28px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    padding: 0.25em;
     border-radius: 999px;
     background: var(--yellow);
+  }
+
+  .hero-nav .hero-logo {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* The menu and the button each take their own column. */
+  .hero-nav .hero-actions {
+    display: contents;
+  }
+
+  .hero-nav .nav-pill {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .hero-nav .cta {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
   }
 
   /* The menu sits straight on the bar. */
@@ -481,10 +506,21 @@ const nav = [
 
   /* Phones and small tablets: logo and the call to action only. */
   /* Phones and small tablets: the call to action only. */
+  /* No menu on phones and small tablets, and no room to centre the logo
+     beside the button: the logo goes to the left. */
   @media (max-width: 800px) {
     .nav-pill {
       display: none;
     }
+    .hero-nav .hero-logo {
+      grid-column: 1;
+      justify-self: start;
+      margin-left: clamp(12px, 3vw, 20px);
+    }
+  }
+
+  .cta-label {
+    white-space: nowrap;
   }
 
   @media (prefers-reduced-motion: reduce) {
