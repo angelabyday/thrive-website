@@ -120,6 +120,11 @@ const initials = (name: string) =>
     list-style: none;
   }
 
+  /* The second portrait sits a little lower, so the pair is staggered. */
+  .wwr-person:nth-child(2) {
+    margin-top: clamp(24px, 4vw, 64px);
+  }
+
   .wwr-portrait {
     container-type: inline-size;
     position: relative;
