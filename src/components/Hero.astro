@@ -326,7 +326,9 @@ const nav = [
       background-color 0.25s ease,
       top 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
       left 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
-      right 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+      right 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+      padding 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
+      border-radius 0.4s cubic-bezier(0.3, 0.7, 0.2, 1);
   }
 
   /* When "Talk to us" is hovered, its arrow disc rolls out to the right;
@@ -350,19 +352,21 @@ const nav = [
     margin-left: 0.4em;
   }
 
-  /* Once the page scrolls, the bar moves up to halve its gap from the top
-     of the window and draws in to about 60% of its width, never narrower
-     than its contents need, and turns solid cream with no outline,
-     whatever is behind it; orange logo, navy buttons with cream type. */
+  /* Once the page scrolls, the bar moves up flush with the top and sides
+     of the window, full width, square at the top and rounded at the
+     bottom, and turns solid cream with no outline, whatever is behind it;
+     orange logo, navy buttons with cream type. Its contents keep their
+     inset from the window's sides. */
   .hero-nav[data-stuck] {
-    --side: calc(var(--nav-pad) + 6vw + 0.15 * (100vw - 2 * var(--nav-pad) - 12vw));
-    top: calc(var(--nav-pad) / 2);
-    left: min(var(--side), (100vw - 760px) / 2);
-    right: calc(min(var(--side), (100vw - 760px) / 2) - var(--grow, 0px));
+    top: 0;
+    left: 0;
+    right: 0;
+    padding-inline: var(--nav-pad);
+    border-radius: 0 0 clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px);
     background: #fff2e6;
     /* A soft shadow, so the cream bar still reads over the cream
        sections. */
-    box-shadow: 0 3px 10px rgb(24 34 53 / 0.12);
+    box-shadow: 0 3px 10px rgb(24 34 53 / 0.06);
   }
 
   .hero-nav[data-stuck] .hero-logo {
@@ -380,13 +384,7 @@ const nav = [
     color: #fff2e6 !important;
   }
 
-  /* Without the menu (phones, small tablets) the bar needs less room. */
-  @media (max-width: 800px) {
-    .hero-nav[data-stuck] {
-      left: min(var(--side), (100vw - 280px) / 2);
-      right: calc(min(var(--side), (100vw - 280px) / 2) - var(--grow, 0px));
-    }
-  }
+
 
   .hero-nav .hero-logo {
     grid-column: 1;
