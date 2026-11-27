@@ -86,8 +86,13 @@ const looks = [
 <style>
   /* Navy edge to edge (the service stages' navy), cream heading. */
   .values {
-    margin: 0;
-    padding: clamp(48px, 7vw, 120px) var(--pad-x);
+    /* Rounded at the top, tucked up over the cream section above so the
+       cream shows behind the corners. */
+    --round: clamp(16px, 1.8vw, 28px);
+    position: relative;
+    margin: calc(-1 * var(--round)) 0 0;
+    padding: calc(clamp(48px, 7vw, 120px) + var(--round)) var(--pad-x) clamp(48px, 7vw, 120px);
+    border-radius: var(--round) var(--round) 0 0;
     background: #182235;
     color: #FFF2E6;
     font-family: 'Albert Sans', system-ui, sans-serif;
