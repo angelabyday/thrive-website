@@ -12,7 +12,6 @@ import WhatWeAre from '../components/WhatWeAre.astro';
 
 const nav = [
   { href: '#what-we-do', label: 'What we do' },
-  { href: '#how-we-work', label: 'How we work' },
   { href: '#work', label: 'Work' },
   { href: '#talk', label: 'Talk to us' },
 ];
@@ -55,25 +54,6 @@ const stages = [
     name: 'Optimisation',
     line: 'Making it better.',
     body: "We measure what's working and what isn't, then keep adjusting. Standing still is no better six months after launch than it was before we started.",
-  },
-];
-
-const ways = [
-  {
-    title: 'Small and senior on purpose.',
-    body: "There's no account layer and nobody learning the job on your budget, so the people doing the thinking are the people doing the making, and they're the same people you talk to.",
-  },
-  {
-    title: 'A shared channel and a session every fortnight.',
-    body: "Day to day we work with you in Slack or Teams and sit down together every two weeks. We bring direction, so you're not continually briefing us.",
-  },
-  {
-    title: 'Weeks, not eighteen months.',
-    body: "Things move faster than this sort of work used to. And we'd rather price the outcome than count the days.",
-  },
-  {
-    title: 'Yes, we use AI.',
-    body: "It sits in the kit alongside everything else and it's a big part of why a team our size moves at the speed it does. What you're paying for is the judgement about what to do with it.",
   },
 ];
 
@@ -300,21 +280,6 @@ const email = 'hello@andwethrive.co.uk';
       </section>
       </div>
 
-      <!-- How we work -->
-      <section id="how-we-work">
-        <p>How we work</p>
-        <h2>The people you meet are the people who do the work.</h2>
-        {
-          ways.map((w) => (
-            <div>
-              <h3>{w.title}</h3>
-              <p>{w.body}</p>
-            </div>
-          ))
-        }
-        <!-- Video placeholder: Oliver and Simon on how we work -->
-        <button type="button" aria-label="Play video">Watch video 01:00</button>
-      </section>
 
       <!-- Values -->
       <Values heading="Four things you can hold us to." values={values} />
