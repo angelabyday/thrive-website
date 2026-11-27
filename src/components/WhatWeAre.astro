@@ -17,7 +17,7 @@ const [first, rest] = cut > 0 ? [close.slice(0, cut), close.slice(cut + 1)] : ['
 ---
 
 <section id="what-we-are" class="wwa">
-  <div class="wwa-panel">
+  <div class="wwa-panel" data-wwa-panel>
     <div class="wwa-head">
       <p class="wwa-kicker">{kicker}</p>
       <h2 class="wwa-heading">{heading}</h2>
@@ -32,6 +32,49 @@ const [first, rest] = cut > 0 ? [close.slice(0, cut), close.slice(cut + 1)] : ['
     </p>
   </div>
 </section>
+
+<script>
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import gsap from 'gsap';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* The panel opens out of a circle: as it comes up the screen it shows
+     only through a small round window on the orange, which grows until
+     the whole panel is open by the time its top is a fifth of the way
+     down the screen. The circle stays centred on the part of the panel
+     that's on screen. Scrolling back closes it again. With reduced
+     motion the panel is simply there. */
+  const panel = document.querySelector<HTMLElement>('[data-wwa-panel]');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (panel && !reduce) {
+    const ease = gsap.parseEase('power2.inOut');
+    const draw = (p: number) => {
+      if (p >= 1) {
+        panel.style.clipPath = '';
+        return;
+      }
+      const r = panel.getBoundingClientRect();
+      const w = r.width;
+      const h = r.height;
+      const top = Math.max(0, -r.top);
+      const bottom = Math.min(h, window.innerHeight - r.top);
+      const cx = w / 2;
+      const cy = Math.max(0, (top + bottom) / 2);
+      const start = Math.min(w, window.innerHeight) * 0.09;
+      const full = Math.hypot(Math.max(cx, w - cx), Math.max(cy, h - cy));
+      panel.style.clipPath = `circle(${start + (full - start) * ease(p)}px at ${cx}px ${cy}px)`;
+    };
+    draw(0);
+    ScrollTrigger.create({
+      trigger: panel,
+      start: 'top 95%',
+      end: 'top 20%',
+      onUpdate: (self) => draw(self.progress),
+      onRefresh: (self) => draw(self.progress),
+    });
+  }
+</script>
 
 <style>
   .wwa {
