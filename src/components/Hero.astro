@@ -281,12 +281,14 @@ const nav = [
   /* Smaller than the bar, with room round it, so it sits inside the bar
      rather than filling its end. */
   .hero-nav .cta {
-    --cta-size: calc(var(--bar) - 0.7em);
+    --cta-size: calc(var(--bar) - 0.3em);
     grid-column: 3;
     grid-row: 1;
     justify-self: end;
-    margin-right: 0.4em;
-    font-size: 0.88em;
+    /* With the bar's own padding, the same gap at the right as above and
+       below. */
+    margin-right: 0.15em;
+    font-size: 0.95em;
   }
 
   /* The menu sits straight on the bar. */
