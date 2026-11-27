@@ -40,7 +40,7 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
           statement, placed by the script once the lines are laid out. */}
       <div class="why-lane" aria-hidden="true" data-why-lane>
         <span class="why-roller" data-why-roller>
-          <span class="why-donut" data-glass="donut" data-gradient="1" data-ground="none" data-why-donut></span>
+          <span class="why-donut" data-glass="donut" data-gradient="1" data-ground="none" data-still="donut" data-why-donut></span>
           <span class="why-shadow"></span>
         </span>
       </div>
@@ -66,7 +66,7 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { mountGlass } from '../scripts/glass/glass';
+  import { mountGlass, useStills } from '../scripts/glass/glass';
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -105,11 +105,17 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
        `y` the height above its floor. */
     const state = { x: 0, y: 0 };
     let startX = 0;
+    /* On phones the donut is a still picture, so it's turned here rather
+       than by the glass. */
+    const still = useStills();
     const render = () => {
       const size = donut.offsetWidth;
+      const spin = -(state.x - startX) / (size / 2);
       roller.style.transform = `translateX(${state.x}px)`;
-      donut.style.transform = `translateY(${-state.y}px)`;
-      donut.dataset.spin = String(-(state.x - startX) / (size / 2));
+      donut.style.transform = still
+        ? `translateY(${-state.y}px) rotate(${-spin}rad)`
+        : `translateY(${-state.y}px)`;
+      donut.dataset.spin = String(spin);
       if (shadow) {
         const k = Math.min(1, state.y / (size * 1.5));
         shadow.style.transform = `scale(${1 - k * 0.7})`;

@@ -28,6 +28,25 @@ export const GRADIENTS = [
   ['#ff3a1a', '#ff8a2a', '#ffd06a', '#fff0b0'],
 ];
 
+/* Phones get a still picture of each shape instead of live glass, so
+   they never download three.js (about 700KB) or run WebGL, which keeps
+   scrolling smooth. Each shape names its picture with `data-still`
+   (a file in src/assets/stills, rendered from the live glass). */
+export const useStills = () => window.matchMedia('(max-width: 767px) and (pointer: coarse)').matches;
+
+const STILLS = import.meta.glob<string>('../../assets/stills/*.webp', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+
+export function showStills(host: HTMLElement) {
+  host.querySelectorAll<HTMLElement>('[data-glass][data-still]').forEach((el) => {
+    const url = STILLS[`../../assets/stills/${el.dataset.still}.webp`];
+    if (url) el.style.background = `url("${url}") center / contain no-repeat`;
+  });
+}
+
 /* The most pixels per CSS pixel the glass is drawn at: full sharpness on
    desktops, less on touch screens (phones and tablets), where it barely
    shows and the saving keeps scrolling smooth. */
@@ -80,6 +99,10 @@ export function mountGlass(
 
   const start = async () => {
     started = true;
+    if (useStills()) {
+      showStills(host);
+      return;
+    }
     const THREE = await import('three');
     let renderer: InstanceType<typeof THREE.WebGLRenderer>;
     let environment: InstanceType<typeof THREE.Texture>;
