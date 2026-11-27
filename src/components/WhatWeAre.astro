@@ -11,16 +11,9 @@ interface Props {
 }
 const { kicker, heading, body, close } = Astro.props;
 
-/* The closing statement's last word ("changed") starts as three glass
-   shapes, morphing from one shape into another, which give way to the
-   word once the line has scrolled into view. */
-const m = close.match(/^(.*\s)(\S+?)(\W*)$/);
-const [before, word, after] = m ? [m[1], m[2], m[3]] : [close, '', ''];
-/* Set on two fixed lines, broken before "until". */
-const cut = before.indexOf(' until ');
-const [first, rest] = cut > 0 ? [before.slice(0, cut), before.slice(cut + 1)] : ['', before];
-/* Each of the three shapes morphs through its own set. */
-const shapes = ['seal,clover,donut', 'plus,sunburst,domes', 'flower,diamond,spokes'];
+/* The closing statement, set on two fixed lines, broken before "until". */
+const cut = close.indexOf(' until ');
+const [first, rest] = cut > 0 ? [close.slice(0, cut), close.slice(cut + 1)] : ['', close];
 ---
 
 <section id="what-we-are" class="wwa">
@@ -34,62 +27,11 @@ const shapes = ['seal,clover,donut', 'plus,sunburst,domes', 'flower,diamond,spok
       {body.map((p) => <p>{p}</p>)}
     </div>
 
-    <p class="wwa-close" data-wwa-change>
-      {first && <span class="wwa-line">{first}</span>}{first && ' '}<span class="wwa-line">{rest}<span class="wwa-word">
-        <span class="wwa-word-text" data-wwa-text>{word}</span>
-        <span class="wwa-shapes" aria-hidden="true">
-          {shapes.map((cycle) => (
-            <span class="wwa-shape" data-wwa-shape data-glass={cycle.split(',')[0]} data-glass-cycle={cycle} data-ground="#FFF2E6" />
-          ))}
-        </span>
-      </span>{after}</span>
-      <canvas class="wwa-canvas" aria-hidden="true"></canvas>
+    <p class="wwa-close">
+      {first && <span class="wwa-line">{first}</span>}{first && ' '}<span class="wwa-line">{rest}</span>
     </p>
   </div>
 </section>
-
-<script>
-  import gsap from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { mountGlass } from '../scripts/glass/glass';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  /* Where "changed" goes, three glass shapes sit, each morphing into
-     the next of its set. Once the line has come up the screen and they've
-     had a few seconds, they shrink away one after another and the word
-     takes their place. Scrolling back down past the line puts the shapes
-     back, ready to go again. Without the script, or with reduced motion,
-     it's just the word (a shape shrunk to nothing isn't drawn). */
-  const close = document.querySelector<HTMLElement>('[data-wwa-change]');
-  const canvas = close?.querySelector<HTMLCanvasElement>('.wwa-canvas');
-  const text = close?.querySelector<HTMLElement>('[data-wwa-text]');
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (close && canvas && text && !reduce) {
-    const shapes = [...close.querySelectorAll<HTMLElement>('[data-wwa-shape]')];
-    mountGlass(close, canvas);
-    const showShapes = () => {
-      gsap.set(shapes, { scale: 1 });
-      gsap.set(text, { autoAlpha: 0, scale: 0.9 });
-    };
-    showShapes();
-    let tl: ReturnType<typeof gsap.timeline> | null = null;
-    ScrollTrigger.create({
-      trigger: close,
-      start: 'top 75%',
-      onEnter: () => {
-        tl?.kill();
-        tl = gsap.timeline({ delay: 4.2 });
-        tl.to(shapes, { scale: 0, duration: 0.4, ease: 'back.in(1.6)', stagger: 0.1 });
-        tl.to(text, { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'back.out(1.6)' }, '-=0.15');
-      },
-      onLeaveBack: () => {
-        tl?.kill();
-        showShapes();
-      },
-    });
-  }
-</script>
 
 <style>
   .wwa {
@@ -165,39 +107,6 @@ const shapes = ['seal,clover,donut', 'plus,sunburst,domes', 'flower,diamond,spok
     line-height: 1.05;
     letter-spacing: -0.015em;
     text-wrap: balance;
-    /* Holds the canvas the shapes are drawn on. */
-    position: relative;
-  }
-
-  /* The word, with the three shapes laid over it in the same space, so
-     nothing moves as one gives way to the other. */
-  .wwa-word {
-    position: relative;
-    display: inline-block;
-    white-space: nowrap;
-  }
-
-  .wwa-word-text {
-    display: inline-block;
-  }
-
-  .wwa-shapes {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.12em;
-    pointer-events: none;
-  }
-
-  .wwa-shape {
-    display: block;
-    flex: 0 0 auto;
-    width: 1.05em;
-    height: 1.05em;
-    /* Shrunk to nothing (so not drawn) until the script shows them. */
-    transform: scale(0);
   }
 
   /* Each line kept whole and on its own, from tablets up. On phones the
@@ -207,24 +116,6 @@ const shapes = ['seal,clover,donut', 'plus,sunburst,domes', 'flower,diamond,spok
       display: block;
       white-space: nowrap;
     }
-  }
-
-  /* The shapes' canvas, over the statement with room round it. */
-  .wwa-canvas {
-    position: absolute;
-    inset: -0.5em -0.3em;
-    width: calc(100% + 0.6em);
-    height: calc(100% + 1em);
-    pointer-events: none;
-  }
-
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 
   @media (max-width: 899px) {
