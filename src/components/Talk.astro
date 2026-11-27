@@ -133,7 +133,7 @@ const { heading, body, email } = Astro.props;
     max-width: 30em;
     margin: 0;
     font-size: clamp(18px, 1.5vw, 24px);
-    line-height: 1.4;
+    line-height: 1.12;
     text-wrap: pretty;
   }
 
@@ -197,12 +197,9 @@ const { heading, body, email } = Astro.props;
     outline-offset: 4px;
   }
 
-  /* 30% less between paragraphs on phones (the copy's gap is 16px
-     there). */
-  @media (max-width: 639px) {
-    .talk-text + .talk-text {
-      margin-top: -5px;
-    }
+  /* 30% less between paragraphs than the copy's gap. */
+  .talk-text + .talk-text {
+    margin-top: calc(-0.3 * clamp(16px, 1.6vw, 24px));
   }
 
   /* Phones and small tablets: as tall as its content. */

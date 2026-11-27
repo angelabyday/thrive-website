@@ -99,10 +99,11 @@ const initials = (name: string) =>
   .wwr-body {
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    /* 30% less than a full line's gap between paragraphs. */
+    gap: 0.7em;
     max-width: 34em;
     font-size: clamp(17px, 1.3vw, 20px);
-    line-height: 1.5;
+    line-height: 1.2;
   }
 
   .wwr-body p {
@@ -192,12 +193,8 @@ const initials = (name: string) =>
     }
   }
 
-  /* 30% less between paragraphs on phones, and a smaller name panel on
-     the narrower photos. */
+  /* A smaller name panel on the narrower photos on phones. */
   @media (max-width: 639px) {
-    .wwr-body {
-      gap: 0.7em;
-    }
     .wwr-panel {
       left: 8px;
       right: 8px;
