@@ -27,8 +27,13 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
 ---
 
 <section id="why" class="why" data-why style={`--steps: ${lines.length}`}>
+  {/* Held below the header: the full window width, with the panel inside
+      it and the donut's canvas over both, so only the donut crosses the
+      cream to the window's edges; everything in the panel is cut off at
+      its rounded edges. */}
+  <div class="why-sticky" data-why-sticky>
+  <canvas class="why-canvas" aria-hidden="true"></canvas>
   <div class="why-stage">
-    <canvas class="why-canvas" aria-hidden="true"></canvas>
     <p class="why-kicker">{kicker}</p>
     <div class="why-head">
       {/* Where the donut bounces: its floor a little under the last
@@ -55,6 +60,7 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
       </div>
     </div>
   </div>
+  </div>
 </section>
 
 <script>
@@ -74,7 +80,8 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     const shadow = section.querySelector<HTMLElement>('.why-shadow');
     const donut = section.querySelector<HTMLElement>('[data-why-donut]');
     const block = section.querySelector<HTMLElement>('[data-why-statements]');
-    if (stage && canvas) mountGlass(stage, canvas);
+    const sticky = section.querySelector<HTMLElement>('[data-why-sticky]');
+    if (sticky && canvas) mountGlass(sticky, canvas);
     if (reduce || !stage || !lane || !roller || !donut || !block) return;
 
     const statements = [...section.querySelectorAll<HTMLElement>('[data-why-statement]')];
@@ -225,16 +232,12 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     /* About two-thirds of a screen of scroll per slide, plus a hold at the
        end for the donut. */
     height: calc(100svh + var(--steps) * 65svh + 50svh);
-    padding: var(--gutter);
     /* Runs up under the hero's rounded bottom corners, so cream shows
-       behind them. */
+       behind them. The border round the panel is the held wrapper's
+       padding (below). */
     --tuck: clamp(16px, 1.8vw, 28px);
     margin-top: calc(-1 * var(--tuck));
-    padding-top: calc(var(--gutter) + var(--tuck));
-    /* The donut crosses the whole window, over the cream either side of
-       the panel; anything past the window's edges is cut off, without
-       stopping the panel sticking. */
-    overflow-x: clip;
+    padding-top: var(--tuck);
     /* Cream round the panel, running on into "Who we work with" below,
        so it wraps round the bottom of the panel. */
     background: #fff2e6;
@@ -243,13 +246,25 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
 
   /* Held below the fixed header bar, with the same border above as at
      the sides and below. */
-  .why-stage {
+  /* Below the header, the window's full width and the rest of its
+     height; the panel sits inside it with the same border all round. */
+  .why-sticky {
     position: sticky;
-    top: calc(var(--header-h) + var(--gutter));
+    top: var(--header-h);
     box-sizing: border-box;
     display: flex;
+    height: calc(100svh - var(--header-h));
+    padding: var(--gutter);
+  }
+
+  .why-stage {
+    position: relative;
+    box-sizing: border-box;
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    min-height: calc(100svh - var(--header-h) - 2 * var(--gutter));
+    /* Everything in the panel is cut off at its rounded edges. */
+    overflow: hidden;
     /* Less the gap round the panel, so the content lines up with the
        other sections. */
     padding: clamp(32px, 4.5vw, 80px) max(16px, calc(var(--pad-x) - var(--gutter)));
@@ -265,9 +280,9 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
   .why-canvas {
     position: absolute;
     z-index: 2;
-    inset: calc(-1 * var(--gutter));
-    width: calc(100% + 2 * var(--gutter));
-    height: calc(100% + 2 * var(--gutter));
+    inset: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
   }
 
@@ -292,10 +307,6 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     position: relative;
     z-index: 1;
     display: grid;
-    /* The lines slide in and out past the panel's edges, so they're cut
-       off at its sides (out past the panel's padding), never drawn over
-       the cream round it. The donut's canvas isn't affected. */
-    clip-path: inset(-50vh calc(-1 * max(16px, calc(var(--pad-x) - var(--gutter)))));
   }
 
   /* The statements side by side, each a full slide wide; the script
@@ -370,9 +381,10 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     .why {
       height: auto;
     }
-    .why-stage {
+    .why-sticky {
       position: relative;
-      min-height: 0;
+      top: auto;
+      height: auto;
     }
     .why-statements {
       gap: clamp(20px, 2.4vw, 40px);
