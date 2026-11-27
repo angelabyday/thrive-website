@@ -187,8 +187,13 @@ const looks = [
      it halfway through the turn, when the card is edge on. Desktop is
      left as it was. */
   @media (hover: none) {
+    /* The turn eases out, so the card is edge on after about 0.11s; hide it just before. */
     .stage-canvas {
-      transition: visibility 0s linear 0.3s;
+      transition: visibility 0s linear 0.08s;
+    }
+    /* And the back sits a pixel in front, so it covers the canvas. */
+    .stage-back {
+      transform: rotateY(180deg) translateZ(1px);
     }
     .stage[data-flipped] .stage-canvas {
       visibility: hidden;
