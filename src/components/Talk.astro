@@ -1,62 +1,55 @@
 ---
 /* "Talk to us": an orange panel, like the hero, so the page closes on the
    colour it opens with. The heading and copy on the left, the email
-   address set large with a button to copy it, and a glass shape turning
-   on the right. No form: people write to the address. */
+   address set large with a button to copy it. No form: people write to
+   the address. */
 interface Props {
   heading: string;
   body: string[];
   email: string;
 }
 const { heading, body, email } = Astro.props;
-const ORANGE = '#EB573D';
 ---
 
 <section id="talk" class="talk">
-  <div class="talk-panel" data-glass-clip data-talk>
-    <canvas class="talk-canvas" aria-hidden="true"></canvas>
-    <span class="talk-glass" aria-hidden="true" data-glass="clover" data-gradient="3" data-ground={ORANGE}></span>
+  <div class="talk-panel" data-talk>
 
     <div class="talk-copy">
       <h2 class="talk-heading">{heading}</h2>
       {body.map((p) => <p class="talk-text">{p}</p>)}
 
-      <div class="talk-email">
-        <a class="talk-address" href={`mailto:${email}`}>{email}</a>
-        <button type="button" class="talk-copy-button" data-copy={email}>
-          <span data-copy-label>Copy email</span>
-        </button>
-        <span class="visually-hidden" aria-live="polite" data-copy-status></span>
-      </div>
+      {/* The address in one big lozenge: a click copies it, and the
+          lozenge says "Copied" for a moment, keeping its size. */}
+      <button type="button" class="talk-pill" data-copy={email} aria-label={`Copy email address ${email}`}>
+        <span class="talk-pill-text" data-copy-address>{email}</span>
+        <span class="talk-pill-text talk-pill-done" aria-hidden="true">Copied</span>
+      </button>
+      <span class="visually-hidden" aria-live="polite" data-copy-status></span>
     </div>
   </div>
 </section>
 
 <script>
-  import { mountGlass } from '../scripts/glass/glass';
-
   document.querySelectorAll<HTMLElement>('[data-talk]').forEach((panel) => {
-    const canvas = panel.querySelector<HTMLCanvasElement>('.talk-canvas');
-    if (canvas) mountGlass(panel, canvas);
-
     const button = panel.querySelector<HTMLButtonElement>('[data-copy]');
-    const label = panel.querySelector<HTMLElement>('[data-copy-label]');
     const status = panel.querySelector<HTMLElement>('[data-copy-status]');
-    if (!button || !label) return;
+    if (!button) return;
     let reset = 0;
     button.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(button.dataset.copy ?? '');
-        label.textContent = 'Copied';
-        if (status) status.textContent = 'Email address copied';
       } catch {
-        label.textContent = 'Press Ctrl or ⌘ + C';
+        /* No clipboard: open an email instead. */
+        window.location.href = `mailto:${button.dataset.copy ?? ''}`;
+        return;
       }
+      button.toggleAttribute('data-copied', true);
+      if (status) status.textContent = 'Email address copied';
       window.clearTimeout(reset);
       reset = window.setTimeout(() => {
-        label.textContent = 'Copy email';
+        button.toggleAttribute('data-copied', false);
         if (status) status.textContent = '';
-      }, 2000);
+      }, 1800);
     });
   });
 </script>
@@ -72,36 +65,15 @@ const ORANGE = '#EB573D';
     position: relative;
     overflow: hidden;
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
-    min-height: clamp(520px, 80svh, 860px);
+    min-height: clamp(420px, 64svh, 720px);
     /* Less the gap round the panel, so the content lines up with the
        other sections. */
     padding: clamp(48px, 6vw, 112px) max(16px, calc(var(--pad-x) - var(--gutter)));
     border-radius: clamp(16px, 1.8vw, 28px);
     background: #eb573d;
     color: #f9e07a;
-  }
-
-  /* The shape's canvas over the whole panel, under the type. */
-  .talk-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  /* Marks where the canvas draws the shape: the right-hand column,
-     running off the panel's right edge. */
-  .talk-glass {
-    position: absolute;
-    top: 50%;
-    right: -6%;
-    display: block;
-    width: clamp(260px, 38vw, 680px);
-    aspect-ratio: 1 / 1;
-    translate: 0 -50%;
   }
 
   .talk-copy {
@@ -127,80 +99,76 @@ const ORANGE = '#EB573D';
   }
 
   /* The address, large, with the copy button beside it. */
-  .talk-email {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 16px 24px;
+  /* The lozenge: yellow with orange type on the orange panel, the
+     address set big. "Copied" sits in the same spot, so the lozenge
+     keeps its size when the text swaps. */
+  .talk-pill {
+    display: inline-grid;
+    /* Its own width, in the copy's column. */
+    align-self: flex-start;
+    place-items: center;
+    max-width: 100%;
     margin-top: clamp(16px, 2vw, 32px);
-  }
-
-  .talk-address {
-    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
-    font-weight: 700;
-    font-size: clamp(26px, 3.2vw, 56px);
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-    color: #f9e07a;
-    text-decoration: none;
-    overflow-wrap: anywhere;
-    transition: color 0.2s ease;
-  }
-
-  .talk-address:hover {
-    color: #fff2e6;
-  }
-
-  .talk-copy-button {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 1.2em;
+    padding: 0.32em 0.7em 0.38em;
     border: 0;
     border-radius: 999px;
-    background: #fff;
-    color: #182235;
-    font-size: clamp(15px, 1.1vw, 18px);
+    background: #f9e07a;
+    color: #eb573d;
+    font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
+    font-weight: 700;
+    /* Big, but always small enough to keep the address on one line. */
+    font-size: clamp(18px, 5.4vw, 96px);
+    line-height: 1;
+    letter-spacing: -0.01em;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.2, 1);
   }
 
-  .talk-copy-button:hover {
-    transform: scale(1.04);
+  .talk-pill:hover {
+    transform: scale(1.02);
   }
 
-  .talk-address:focus-visible,
-  .talk-copy-button:focus-visible {
+  .talk-pill:active {
+    transform: scale(0.98);
+  }
+
+  .talk-pill-text {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+    transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .talk-pill-done {
+    opacity: 0;
+    transform: translateY(0.3em);
+  }
+
+  .talk-pill[data-copied] [data-copy-address] {
+    opacity: 0;
+    transform: translateY(-0.3em);
+  }
+
+  .talk-pill[data-copied] .talk-pill-done {
+    opacity: 1;
+    transform: none;
+  }
+
+  .talk-pill:focus-visible {
     outline: 3px solid #182235;
     outline-offset: 4px;
-    border-radius: 6px;
   }
 
-  .talk-copy-button:focus-visible {
-    border-radius: 999px;
-  }
-
-  /* Phones and small tablets: one column, as tall as its content, with
-     the shape in the bottom right corner under the copy. */
+  /* Phones and small tablets: as tall as its content. */
   @media (max-width: 900px) {
     .talk-panel {
-      grid-template-columns: 1fr;
       align-items: start;
       min-height: 0;
-      padding-bottom: clamp(200px, 50vw, 340px);
-    }
-    .talk-glass {
-      top: auto;
-      bottom: -8%;
-      right: -12%;
-      width: clamp(240px, 62vw, 420px);
-      translate: 0 0;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .talk-address,
-    .talk-copy-button {
+    .talk-pill,
+    .talk-pill-text {
       transition: none;
     }
   }
