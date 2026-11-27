@@ -203,13 +203,6 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
 </script>
 
 <style>
-  /* Desktop: the border round the panel twice as wide. */
-  @media (min-width: 1024px) {
-    .why {
-      --gutter: clamp(48px, 6vw, 96px) !important;
-    }
-  }
-
   /* The panel is mint with rounded corners, held a gutter in from the
      window's edges. Tall enough for a screen of scroll per change, then
      the roll and a hold. */
