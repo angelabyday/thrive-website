@@ -115,12 +115,15 @@ const { heading, body, email } = Astro.props;
     color: #f9e07a;
   }
 
+  /* Everything centred: heading, copy and the email lozenge. */
   .talk-copy {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: clamp(16px, 1.6vw, 24px);
+    text-align: center;
   }
 
   .talk-heading {
@@ -144,7 +147,7 @@ const { heading, body, email } = Astro.props;
   .talk-pill {
     display: inline-grid;
     /* Its own width, in the copy's column. */
-    align-self: flex-start;
+    align-self: center;
     place-items: center;
     max-width: 100%;
     margin-top: clamp(16px, 2vw, 32px);
