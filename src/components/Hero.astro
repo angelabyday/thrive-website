@@ -248,12 +248,13 @@ const nav = [
     list-style: none;
   }
 
-  /* All in one bar: a yellow lozenge across the top, the menu on the
-     left, the logo in the middle and "Talk to us" on the right. */
+  /* All in one bar: a yellow lozenge across the top, the logo on the
+     left, the menu and "Talk to us" together on the right. */
   .hero-nav {
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    column-gap: 0.3em;
     align-items: center;
     /* The same height with or without the menu in it. */
     min-height: calc(var(--bar) + 0.5em);
@@ -263,8 +264,9 @@ const nav = [
   }
 
   .hero-nav .hero-logo {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
+    margin-left: clamp(12px, 1.4vw, 24px);
   }
 
   /* The menu and the button each take their own column. */
@@ -275,11 +277,9 @@ const nav = [
   /* The menu's hover highlight matches "Talk to us": the same height and
      the same gap from the bar's edge. */
   .hero-nav .nav-pill {
-    grid-column: 1;
+    grid-column: 3;
     grid-row: 1;
-    justify-self: start;
     height: calc(var(--bar) - 0.3em);
-    margin-left: 0.15em;
   }
 
   /* The menu links and "Talk to us" a weight up from body text. */
@@ -318,9 +318,8 @@ const nav = [
      rather than filling its end. */
   .hero-nav .cta {
     --cta-size: calc(var(--bar) - 0.3em);
-    grid-column: 3;
+    grid-column: 4;
     grid-row: 1;
-    justify-self: end;
     /* With the bar's own padding, the same gap at the right as above and
        below. */
     margin-right: 0.15em;
@@ -553,16 +552,10 @@ const nav = [
 
   /* Phones and small tablets: logo and the call to action only. */
   /* Phones and small tablets: the call to action only. */
-  /* No menu on phones and small tablets, and no room to centre the logo
-     beside the button: the logo goes to the left. */
+  /* No menu on phones and small tablets. */
   @media (max-width: 800px) {
     .nav-pill {
       display: none;
-    }
-    .hero-nav .hero-logo {
-      grid-column: 1;
-      justify-self: start;
-      margin-left: clamp(12px, 3vw, 20px);
     }
   }
 
