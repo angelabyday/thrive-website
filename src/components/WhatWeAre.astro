@@ -11,9 +11,12 @@ interface Props {
 }
 const { kicker, heading, body, close } = Astro.props;
 
-/* The closing statement, set on two fixed lines, broken before "until". */
+/* The closing statement, set on two fixed lines, broken before "until",
+   its last word ("changed") picked out so it can change colour. */
 const cut = close.indexOf(' until ');
-const [first, rest] = cut > 0 ? [close.slice(0, cut), close.slice(cut + 1)] : ['', close];
+const [first, tail] = cut > 0 ? [close.slice(0, cut), close.slice(cut + 1)] : ['', close];
+const m = tail.match(/^(.*\s)(\S+?)(\W*)$/);
+const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
 ---
 
 <section id="what-we-are" class="wwa">
@@ -28,7 +31,7 @@ const [first, rest] = cut > 0 ? [close.slice(0, cut), close.slice(cut + 1)] : ['
     </div>
 
     <p class="wwa-close">
-      {first && <span class="wwa-line">{first}</span>}{first && ' '}<span class="wwa-line">{rest}</span>
+      {first && <span class="wwa-line">{first}</span>}{first && ' '}<span class="wwa-line">{rest}<span class="wwa-changed">{word}</span>{after}</span>
     </p>
   </div>
 </section>
@@ -150,6 +153,43 @@ const [first, rest] = cut > 0 ? [close.slice(0, cut), close.slice(cut + 1)] : ['
     line-height: 1.05;
     letter-spacing: -0.015em;
     text-wrap: balance;
+  }
+
+  /* "changed" on a rounded block that steps through the brand colours,
+     each with its paired type colour: orange with yellow, yellow with
+     orange, blue with navy, navy with blue. Still for reduced motion. */
+  .wwa-changed {
+    display: inline-block;
+    padding: 0 0.14em 0.04em;
+    border-radius: 0.18em;
+    background: #eb573d;
+    color: #f9e07a;
+    animation: wwa-changed 4.8s steps(1, end) infinite;
+  }
+
+  @keyframes wwa-changed {
+    0% {
+      background: #eb573d;
+      color: #f9e07a;
+    }
+    25% {
+      background: #f9e07a;
+      color: #eb573d;
+    }
+    50% {
+      background: #c6ece2;
+      color: #182235;
+    }
+    75% {
+      background: #182235;
+      color: #c6ece2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wwa-changed {
+      animation: none;
+    }
   }
 
   /* Each line kept whole and on its own, from tablets up. On phones the
