@@ -6,11 +6,7 @@
 
    Markup it expects inside `root`:
    - `[data-word]`: the word, its letters as `[data-letter] > [data-glyph]`
-   - `[data-depth]`: an empty box laid over the word for the canvas
-
-   With `pointer: false` the letters don't answer the pointer; the caller
-   turns them over with the returned `swap(i, on)` instead (the scroll
-   does it in "What we are"). */
+   - `[data-depth]`: an empty box laid over the word for the canvas */
 import gsap from 'gsap';
 import { hole, radii } from './shapes';
 import {
@@ -32,10 +28,10 @@ const TILT = 1;
 /* The least time, in ms, a shape stays once it has come in. */
 const HOLD = 1000;
 
-export function mountChangeWord(root: HTMLElement, ground: string, { pointer = true } = {}) {
+export function mountChangeWord(root: HTMLElement, ground: string) {
   const line = root.querySelector<HTMLElement>('[data-word]');
   const host = root.querySelector<HTMLElement>('[data-depth]');
-  if (!line || !host) return { count: 0, swap: () => {}, destroy: () => {} };
+  if (!line || !host) return () => {};
   const boxes = [...line.querySelectorAll<HTMLElement>('[data-letter]')];
   const glyphs = boxes.map((b) => b.querySelector<HTMLElement>('[data-glyph]')!);
   const word = boxes.map((b) => b.textContent ?? '').join('');
@@ -350,7 +346,7 @@ export function mountChangeWord(root: HTMLElement, ground: string, { pointer = t
     waiting[i] = window.setTimeout(() => run(i, false), wait);
   };
 
-  const listeners = (pointer ? boxes : []).map((letter, i) => {
+  const listeners = boxes.map((letter, i) => {
     const enter = (e: PointerEvent) => e.pointerType === 'mouse' && swap(i, true);
     const leave = (e: PointerEvent) => e.pointerType === 'mouse' && swap(i, false);
     const tap = () => swap(i, !shown[i]);
@@ -376,14 +372,10 @@ export function mountChangeWord(root: HTMLElement, ground: string, { pointer = t
   );
   watch.observe(root);
 
-  return {
-    count: boxes.length,
-    swap,
-    destroy: () => {
-      live = false;
-      watch.disconnect();
-      listeners.forEach((off) => off());
-      stop();
-    },
+  return () => {
+    live = false;
+    watch.disconnect();
+    listeners.forEach((off) => off());
+    stop();
   };
 }
