@@ -352,6 +352,14 @@ const nav = [
     margin-left: 0.4em;
   }
 
+  /* In the full-width bar there's room at the side, so the disc just
+     rolls out to the right and nothing else moves. */
+  .hero-nav[data-stuck] .cta:hover .cta-icon,
+  .hero-nav[data-stuck] .cta:focus-visible .cta-icon {
+    margin-left: -0.15em;
+    transform: translateX(0.55em);
+  }
+
   /* Once the page scrolls, the bar moves up flush with the top and sides
      of the window, full width, square at the top and rounded at the
      bottom, and turns solid cream with no outline, whatever is behind it;
