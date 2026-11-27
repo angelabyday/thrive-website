@@ -54,8 +54,12 @@ const letters = Array.from('Change');
 <script>
   import { mountChangeWord } from '../scripts/glass/changeWord';
 
+  /* Only where there's a pointer to hover with: on touch screens
+     (phones, tablets) the word stays as type, which also saves the phone
+     drawing another 3D canvas. */
   const change = document.querySelector<HTMLElement>('[data-change]');
-  if (change) mountChangeWord(change, change.dataset.ground ?? '#C6ECE2');
+  const touch = window.matchMedia('(pointer: coarse)').matches;
+  if (change && !touch) mountChangeWord(change, change.dataset.ground ?? '#C6ECE2');
 </script>
 
 <style>
