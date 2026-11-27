@@ -142,6 +142,55 @@ const nav = [
   const hero = document.querySelector<HTMLElement>('.hero');
   const canvas = hero?.querySelector<HTMLCanvasElement>('.hero-canvas');
   if (hero && canvas) mountGlass(hero, canvas);
+
+  /* The bar is only an outline, so its outline, the logo and the buttons
+     take colours that show on whatever is behind them: yellow (buttons
+     with orange type) on orange and navy, orange (buttons with yellow
+     type) on yellow and the light colours. Checked as the page scrolls,
+     at the logo's middle. */
+  const header = document.querySelector<HTMLElement>('.hero-nav');
+  const logo = header?.querySelector<HTMLElement>('.hero-logo');
+  if (header && logo) {
+    /* Outline, logo and button colour, then the buttons' type colour. */
+    const INK: Record<string, [string, string]> = {
+      'rgb(235, 87, 61)': ['#F9E07A', '#EB573D'],
+      'rgb(24, 34, 53)': ['#F9E07A', '#EB573D'],
+      'rgb(249, 224, 122)': ['#EB573D', '#F9E07A'],
+      'rgb(198, 236, 226)': ['#EB573D', '#F9E07A'],
+      'rgb(255, 242, 230)': ['#EB573D', '#F9E07A'],
+      'rgb(255, 255, 255)': ['#EB573D', '#F9E07A'],
+    };
+    const behind = () => {
+      const r = logo.getBoundingClientRect();
+      for (const el of document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2)) {
+        if (header.contains(el)) continue;
+        for (let at: Element | null = el; at; at = at.parentElement) {
+          const bg = getComputedStyle(at).backgroundColor;
+          if (INK[bg]) return INK[bg];
+          if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return null;
+        }
+      }
+      return null;
+    };
+    let queued = false;
+    const update = () => {
+      queued = false;
+      const ink = behind();
+      if (ink) {
+        header.style.setProperty('--nav-ink', ink[0]);
+        header.style.setProperty('--nav-text', ink[1]);
+      }
+    };
+    const queue = () => {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    };
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    update();
+  }
 </script>
 
 <style>
@@ -221,8 +270,8 @@ const nav = [
     display: block;
     width: clamp(96px, 8vw, 150px);
     aspect-ratio: 631.6 / 144.62;
-    /* Orange on the bar's yellow. */
-    background: var(--orange);
+    background: var(--nav-ink, var(--yellow));
+    transition: background-color 0.25s ease;
     mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
     -webkit-mask: url('../assets/thrive-logo.svg') no-repeat left center / contain;
   }
@@ -258,9 +307,15 @@ const nav = [
     align-items: center;
     /* The same height with or without the menu in it. */
     min-height: calc(var(--bar) + 0.5em);
+    /* The height of every button in the bar, menu and "Talk to us". */
+    --item: calc(max(44px, 2.47em) - 0.285em);
     padding: 0.25em;
     border-radius: 999px;
-    background: var(--yellow);
+    /* An outline, not a fill, drawn inside the bar so its size doesn't
+       change. Yellow over orange; it switches to suit whatever the bar is
+       over as the page scrolls (see the script). */
+    box-shadow: inset 0 0 0 2px var(--nav-ink, var(--yellow));
+    transition: box-shadow 0.25s ease;
   }
 
   .hero-nav .hero-logo {
@@ -279,12 +334,13 @@ const nav = [
   .hero-nav .nav-pill {
     grid-column: 3;
     grid-row: 1;
-    height: calc(var(--bar) - 0.3em);
+    height: var(--item);
   }
 
   /* The menu links and "Talk to us" a weight up from body text. */
   .hero-nav .nav-pill a,
   .hero-nav .cta-label {
+    font-size: 0.95em;
     font-weight: 500;
   }
 
@@ -300,8 +356,8 @@ const nav = [
 
   .hero-nav .nav-pill a,
   .hero-nav .nav-pill a[data-active] {
-    background: var(--orange);
-    color: var(--yellow);
+    background: var(--nav-ink, var(--yellow));
+    color: var(--nav-text, var(--orange));
     transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.2, 1);
   }
 
@@ -310,19 +366,19 @@ const nav = [
   }
 
   .hero-nav .nav-pill a:focus-visible {
-    outline-color: var(--orange);
+    outline-color: var(--nav-ink, var(--yellow));
     outline-offset: 2px;
   }
 
   /* Smaller than the bar, with room round it, so it sits inside the bar
      rather than filling its end. */
   .hero-nav .cta {
-    --cta-size: calc(var(--bar) - 0.3em);
+    --cta-size: var(--item);
     grid-column: 4;
     grid-row: 1;
     /* With the bar's own padding, the same gap at the right as above and
        below. */
-    margin-right: 0.15em;
+    margin-right: calc((var(--bar) + 0.5em - var(--item)) / 2 - 0.25em);
   }
 
   /* The menu sits straight on the bar. */
@@ -333,8 +389,8 @@ const nav = [
 
   /* "Talk to us" in orange with yellow type, to stand out on the bar. */
   .hero-nav .cta {
-    --cta-bg: var(--orange);
-    color: var(--yellow) !important;
+    --cta-bg: var(--nav-ink, var(--yellow));
+    color: var(--nav-text, var(--orange)) !important;
   }
 
   /* The menu and the call to action, side by side. */

@@ -27,8 +27,10 @@ const initials = (name: string) =>
 ---
 
 <section id="who-we-are" class="wwr">
+  {/* The label on its own row, so the portraits line up with the top of
+      the heading, not the label. */}
+  <p class="wwr-kicker">{kicker}</p>
   <div class="wwr-copy">
-    <p class="wwr-kicker">{kicker}</p>
     <h2 class="wwr-heading">{heading}</h2>
     <div class="wwr-body">
       {body.map((p) => <p>{p}</p>)}
@@ -60,7 +62,10 @@ const initials = (name: string) =>
   .wwr {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    gap: clamp(32px, 5vw, 96px);
+    grid-template-areas:
+      'kicker .'
+      'copy people';
+    gap: clamp(16px, 1.6vw, 24px) clamp(32px, 5vw, 96px);
     align-items: start;
     padding: clamp(56px, 7vw, 120px) var(--pad-x);
     background: #fff2e6;
@@ -68,12 +73,14 @@ const initials = (name: string) =>
   }
 
   .wwr-copy {
+    grid-area: copy;
     display: flex;
     flex-direction: column;
     gap: clamp(16px, 1.6vw, 24px);
   }
 
   .wwr-kicker {
+    grid-area: kicker;
     margin: 0;
     font-size: clamp(16px, 1.3vw, 20px);
   }
@@ -100,6 +107,7 @@ const initials = (name: string) =>
   }
 
   .wwr-people {
+    grid-area: people;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: clamp(12px, 1.5vw, 24px);
@@ -152,6 +160,14 @@ const initials = (name: string) =>
   @media (max-width: 899px) {
     .wwr {
       grid-template-columns: 1fr;
+      grid-template-areas:
+        'kicker'
+        'copy'
+        'people';
+      row-gap: clamp(16px, 1.6vw, 24px);
+    }
+    .wwr-people {
+      margin-top: clamp(16px, 4vw, 32px);
     }
   }
 
