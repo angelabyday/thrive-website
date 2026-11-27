@@ -144,7 +144,8 @@ const cards = sectors.map((name, i) => {
   .who-copy {
     grid-area: copy;
     position: sticky;
-    top: clamp(16px, 2vw, 32px);
+    /* Held below the fixed header, not under it. */
+    top: var(--header-clear);
     align-self: start;
     display: flex;
     flex-direction: column;
