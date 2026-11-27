@@ -209,18 +209,49 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
 
     /* The section is a short run of scroll per statement, plus a hold at
        the end for the donut; which stretch you're in picks the statement. */
-    ScrollTrigger.create({
+    /* The stop the scroll last rested on (see the snapping, below). */
+    let rest = 0;
+    const st = ScrollTrigger.create({
       trigger: section,
       start: 'top top',
       end: 'bottom bottom',
       invalidateOnRefresh: true,
       onRefresh: measure,
+      onEnter: () => (rest = 0),
+      onEnterBack: () => (rest = statements.length),
       onUpdate: (self) => {
         const n = statements.length;
         /* One stretch per statement after the first, and one to hold. */
         const step = Math.min(n - 1, Math.floor(self.progress * n));
         show(step);
       },
+    });
+
+    /* Snapping: when the scroll comes to rest part-way through, it
+       carries on to the next statement in the direction you were going,
+       one statement from the last one it rested on, so one small scroll
+       moves exactly one statement. A nudge too small to count settles
+       back. The last stop is the end of the section, where the page
+       carries on. */
+    const n = statements.length;
+    const stops = [...statements.map((_, k) => k / n + 0.002), 1];
+    const go = (k: number) => {
+      rest = Math.max(0, Math.min(stops.length - 1, k));
+      const target = st.start + stops[rest] * (st.end - st.start);
+      if (Math.abs(target - window.scrollY) < 3) return;
+      const lenis = (window as unknown as { lenis?: { scrollTo: (y: number, o?: object) => void } }).lenis;
+      if (lenis) lenis.scrollTo(target, { duration: 0.6 });
+      else window.scrollTo({ top: target, behavior: 'smooth' });
+    };
+    ScrollTrigger.addEventListener('scrollEnd', () => {
+      if (!st.isActive) return;
+      const p = st.progress;
+      if (p <= 0.002 || p >= 0.998) return;
+      const at = p * n;
+      const here = stops[rest] * n;
+      if (at > here + 0.2) go(rest + 1);
+      else if (at < here - 0.2) go(rest - 1);
+      else go(rest);
     });
   });
 </script>

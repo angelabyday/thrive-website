@@ -30,6 +30,8 @@ if (!reduce && !touch) {
   });
 
   lenis.on('scroll', ScrollTrigger.update);
+  /* Shared, so sections that snap the scroll can move it through Lenis. */
+  (window as unknown as { lenis?: Lenis }).lenis = lenis;
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
 }
