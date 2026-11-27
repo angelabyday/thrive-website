@@ -337,6 +337,25 @@ const nav = [
     left: 0;
     right: 0;
     border-radius: 0 0 clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px);
+    /* Solid navy with no outline once it's at the top, whatever is
+       behind it; yellow logo, yellow buttons with orange type. */
+    background: #182235;
+    box-shadow: none;
+  }
+
+  .hero-nav[data-stuck] .hero-logo {
+    background: var(--yellow);
+  }
+
+  .hero-nav[data-stuck] .nav-pill a,
+  .hero-nav[data-stuck] .nav-pill a[data-active] {
+    background: var(--yellow);
+    color: var(--orange);
+  }
+
+  .hero-nav[data-stuck] .cta {
+    --cta-bg: var(--yellow);
+    color: var(--orange) !important;
   }
 
   .hero-nav .hero-logo {
