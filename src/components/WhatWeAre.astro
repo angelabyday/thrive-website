@@ -15,6 +15,10 @@ const { kicker, heading, body, close } = Astro.props;
    as it scrolls past, like the footer's "Change". */
 const m = close.match(/^(.*\s)(\S+?)(\W*)$/);
 const [before, word, after] = m ? [m[1], m[2], m[3]] : [close, '', ''];
+/* Set on two fixed lines, broken before "until", so the line doesn't
+   rewrap as the shapes (wider than the letters) come in. */
+const cut = before.indexOf(' until ');
+const [first, rest] = cut > 0 ? [before.slice(0, cut), before.slice(cut + 1)] : ['', before];
 ---
 
 <section id="what-we-are" class="wwa">
@@ -29,7 +33,7 @@ const [before, word, after] = m ? [m[1], m[2], m[3]] : [close, '', ''];
     </div>
 
     <p class="wwa-close" data-wwa-change>
-      {before}<span class="wwa-word" data-word>
+      {first && <span class="wwa-line">{first}</span>}{first && ' '}<span class="wwa-line">{rest}<span class="wwa-word" data-word>
         <span class="visually-hidden">{word}</span>
         {
           Array.from(word).map((c) => (
@@ -38,7 +42,7 @@ const [before, word, after] = m ? [m[1], m[2], m[3]] : [close, '', ''];
             </span>
           ))
         }
-      </span>{after}
+      </span>{after}</span>
       <span class="wwa-depth" data-depth aria-hidden="true"></span>
     </p>
   </div>
@@ -163,6 +167,15 @@ const [before, word, after] = m ? [m[1], m[2], m[3]] : [close, '', ''];
      opens to a shape's width as the shape comes in. */
   .wwa-word {
     white-space: nowrap;
+  }
+
+  /* Each line kept whole and on its own, from tablets up. On phones the
+     lines are too long to keep, so they wrap. */
+  @media (min-width: 640px) {
+    .wwa-line {
+      display: block;
+      white-space: nowrap;
+    }
   }
 
   .wwa-letter,
