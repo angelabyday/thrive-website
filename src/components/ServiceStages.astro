@@ -87,6 +87,12 @@ const looks = [
 <script>
   import { mountGlass } from '../scripts/glass/glass';
 
+  /* Touch screens and Safari get the shape fading as a card turns (see
+     the styles). Every iOS browser is Safari underneath. */
+  const safari = /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
+  if (safari || matchMedia('(hover: none)').matches)
+    document.querySelector('[data-stages]')?.setAttribute('data-fade', '');
+
   document.querySelectorAll<HTMLElement>('[data-stage]').forEach((stage) => {
     /* Each card draws its own shape, on a canvas inside its front, so the
        shape turns over with the card. */
@@ -182,20 +188,21 @@ const looks = [
     pointer-events: none;
   }
 
-  /* Phones and tablets: iOS Safari draws a canvas through a hidden back
-     face, so the shape would show, mirrored, over the description. Hide
-     it halfway through the turn, when the card is edge on. Desktop is
-     left as it was. */
-  @media (hover: none) {
+  /* Safari (on phones, tablets and Macs) draws a canvas through a
+     hidden back face, so the shape would show, mirrored, over the
+     description. Where [data-fade] is set (touch screens and Safari),
+     the shape fades out as the card turns over and back in as it turns
+     back. Other desktop browsers are left as they were. */
+  @media (prefers-reduced-motion: no-preference) {
     /* The turn eases out, so the card is edge on after about 0.11s.
        Turning back: the shape fades in once the front is facing again. */
-    .stage-canvas {
+    .stages[data-fade] .stage-canvas {
       transition:
         visibility 0s linear 0.11s,
         opacity 0.15s ease-out 0.11s;
     }
     /* Turning over: it fades out, gone just before edge on. */
-    .stage[data-flipped] .stage-canvas {
+    .stages[data-fade] .stage[data-flipped] .stage-canvas {
       visibility: hidden;
       opacity: 0;
       transition:
@@ -203,14 +210,19 @@ const looks = [
         visibility 0s linear 0.08s;
     }
     /* And the back sits a pixel in front, so it covers the canvas. */
-    .stage-back {
+    .stages[data-fade] .stage-back {
       transform: rotateY(180deg) translateZ(1px);
     }
   }
 
-  @media (hover: none) and (prefers-reduced-motion: reduce) {
-    .stage-canvas {
-      transition: none;
+  /* With a mouse, hover turns the card too. */
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) {
+    .stages[data-fade] .stage:hover .stage-canvas {
+      visibility: hidden;
+      opacity: 0;
+      transition:
+        opacity 0.08s linear,
+        visibility 0s linear 0.08s;
     }
   }
 
