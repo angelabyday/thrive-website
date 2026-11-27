@@ -183,6 +183,7 @@ const nav = [
       }
     };
     const queue = () => {
+      header.toggleAttribute('data-stuck', window.scrollY > 0);
       if (!queued) {
         queued = true;
         requestAnimationFrame(update);
@@ -190,6 +191,7 @@ const nav = [
     };
     window.addEventListener('scroll', queue, { passive: true });
     window.addEventListener('resize', queue);
+    header.toggleAttribute('data-stuck', window.scrollY > 0);
     update();
   }
 </script>
@@ -321,7 +323,20 @@ const nav = [
     background: var(--nav-bg, var(--orange));
     transition:
       box-shadow 0.25s ease,
-      background-color 0.25s ease;
+      background-color 0.25s ease,
+      top 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
+      left 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
+      right 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
+      border-radius 0.3s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  /* Once the page scrolls, the bar moves up flush with the top and sides
+     of the window, square at the top and rounded only at the bottom. */
+  .hero-nav[data-stuck] {
+    top: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0 0 clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px);
   }
 
   .hero-nav .hero-logo {
