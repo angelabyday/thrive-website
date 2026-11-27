@@ -163,52 +163,87 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
       drop.eventCallback('onComplete', hide);
     };
 
-    /* The statements are slides side by side. As the page scrolls, each
-       slides in from the right in turn, pushing the one before off to the
-       left, with a pause on each. The last slide cues the donut, and the
-       section holds a while for it before letting go. */
-    const n = statements.length;
-    const tl = gsap.timeline({
-      scrollTrigger: {
+    let played = false;
+    const reset = () => {
+      played = false;
+      drop?.kill();
+      hide();
+    };
+    const mm = gsap.matchMedia();
+
+    /* Tablets and up: the statements are slides side by side. As the page
+       scrolls, each slides in from the right in turn, pushing the one
+       before off to the left, with a pause on each. The last slide cues
+       the donut, and the section holds a while for it before letting go. */
+    mm.add('(min-width: 768px)', () => {
+      const n = statements.length;
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+          onRefresh: measure,
+        },
+      });
+      tl.to({}, { duration: 0.5 });
+      for (let k = 1; k < n; k++) {
+        tl.to(track, {
+          x: () => -k * (track.offsetWidth + parseFloat(getComputedStyle(track).columnGap)),
+          duration: 1,
+          ease: 'power2.inOut',
+        });
+        if (k === n - 1) tl.addLabel('bounce', '-=0.3');
+        tl.to({}, { duration: 0.5 });
+      }
+      tl.to({}, { duration: 0.8 });
+
+      /* The scroll only starts the donut, as the last slide arrives; it
+         bounces through at its own pace. Scroll back before that and it's
+         reset, ready to go again. */
+      ScrollTrigger.create({
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 0.6,
-        invalidateOnRefresh: true,
-        onRefresh: measure,
-      },
-    });
-    tl.to({}, { duration: 0.5 });
-    for (let k = 1; k < n; k++) {
-      tl.to(track, {
-        x: () => -k * (track.offsetWidth + parseFloat(getComputedStyle(track).columnGap)),
-        duration: 1,
-        ease: 'power2.inOut',
+        onUpdate: (self) => {
+          const cue = (tl.labels.bounce ?? tl.duration()) / tl.duration();
+          if (!played && self.progress >= cue) {
+            played = true;
+            play();
+          } else if (played && self.progress < cue - 0.02) reset();
+        },
       });
-      if (k === n - 1) tl.addLabel('bounce', '-=0.3');
-      tl.to({}, { duration: 0.5 });
-    }
-    tl.to({}, { duration: 0.8 });
+      return reset;
+    });
 
-    /* The scroll only starts the donut, as the last slide arrives; it
-       bounces through at its own pace. Scroll back before that and it's
-       reset, ready to go again. */
-    let played = false;
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top top',
-      end: 'bottom bottom',
-      onUpdate: (self) => {
-        const cue = (tl.labels.bounce ?? tl.duration()) / tl.duration();
-        if (!played && self.progress >= cue) {
-          played = true;
-          play();
-        } else if (played && self.progress < cue - 0.02) {
-          played = false;
-          drop?.kill();
-          hide();
-        }
-      },
+    /* Phones: nothing is held. The statements sit one under another, and
+       each slides in from the right as it scrolls into view, so a quick
+       flick can't skip any. The donut bounces through under the last. */
+    mm.add('(max-width: 767px)', () => {
+      measure();
+      statements.forEach((st) => {
+        gsap.from(st, {
+          x: 60,
+          autoAlpha: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: st, start: 'top 85%', toggleActions: 'play none none reverse' },
+        });
+      });
+      ScrollTrigger.create({
+        trigger: last,
+        start: 'top 60%',
+        onEnter: () => {
+          if (!played) {
+            played = true;
+            play();
+          }
+        },
+        onLeaveBack: reset,
+        onRefresh: measure,
+      });
+      return reset;
     });
   });
 </script>
@@ -380,6 +415,27 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     translate: 0 -50%;
     transform-origin: center;
     pointer-events: none;
+  }
+
+  /* Phones: nothing held; the statements stack down the panel, with room
+     under the last for the donut to bounce through. */
+  @media (max-width: 767px) {
+    .why {
+      height: auto;
+    }
+    .why-sticky {
+      position: relative;
+      top: auto;
+      height: auto;
+    }
+    .why-head {
+      padding-block: clamp(24px, 8vw, 48px) calc(var(--donut) * 1.5);
+    }
+    .why-track {
+      grid-auto-flow: row;
+      grid-auto-columns: auto;
+      row-gap: clamp(32px, 10vw, 56px);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
