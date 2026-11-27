@@ -71,6 +71,7 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
   gsap.registerPlugin(ScrollTrigger);
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const touch = window.matchMedia('(pointer: coarse)').matches;
 
   document.querySelectorAll<HTMLElement>('[data-why]').forEach((section) => {
     const stage = section.querySelector<HTMLElement>('.why-stage');
@@ -195,12 +196,17 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
           scrub: 0.6,
           invalidateOnRefresh: true,
           onRefresh: measure,
-          snap: {
-            snapTo: (value: number) => gsap.utils.snap(rests, value),
-            duration: { min: 0.2, max: 0.6 },
-            delay: 0.08,
-            ease: 'power1.inOut',
-          },
+          /* Not on touch screens, where it fights the device's own
+             momentum scrolling. Only inside the section, so it can never
+             pull the page from above or below it. */
+          snap: touch
+            ? undefined
+            : {
+                snapTo: (value: number) => (value <= 0 || value >= 1 ? value : gsap.utils.snap(rests, value)),
+                duration: { min: 0.2, max: 0.6 },
+                delay: 0.08,
+                ease: 'power1.inOut',
+              },
         },
       });
       const stops = [0];
