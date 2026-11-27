@@ -23,8 +23,11 @@ import { GRADIENTS, glassPixelRatio } from './glass';
 
 const SHAPES = ['seal', 'sunburst', 'clover', 'plus', 'flower', 'donut', 'diamond', 'domes', 'spokes', 'circle'];
 const DEPTH = 0.13;
-/* Each shape lands at an angle of its own, so its depth shows. */
-const TILT = 1;
+/* Each shape lands at an angle of its own, so its depth shows (a gentle
+   one). */
+const TILT = 0.6;
+/* How big each shape is against a capital letter. */
+const SIZE = 0.85;
 /* The least time, in ms, a shape stays once it has come in. */
 const HOLD = 1000;
 
@@ -166,7 +169,7 @@ export function mountChangeWord(root: HTMLElement, ground: string) {
       const at = boxes[i].getBoundingClientRect();
       const frame = host.getBoundingClientRect();
       const { lift, off } = suite[slabs[i].k];
-      const unit = (cap / 2) * em;
+      const unit = (cap / 2) * em * SIZE;
       const left = at.left - frame.left + at.width / 2 - unit - off * unit;
       const top = at.top - frame.top + baseline * em - cap * em + lift * unit + 0.04 * em;
       slabs[i].mesh.position.set(left + unit - width / 2, height / 2 - (top + unit), 0);
@@ -325,7 +328,7 @@ export function mountChangeWord(root: HTMLElement, ground: string) {
     if (!letter.dataset.natural) letter.dataset.natural = String(letter.getBoundingClientRect().width);
     const em = parseFloat(getComputedStyle(letter).fontSize);
     gsap.to(letter, {
-      width: on ? capHeight * 1.15 * em : Number(letter.dataset.natural),
+      width: on ? capHeight * 1.15 * SIZE * em : Number(letter.dataset.natural),
       duration: (on ? 0.5 : 0.4) * t,
       ease: on ? 'back.out(1.4)' : 'power2.inOut',
       overwrite: 'auto',
