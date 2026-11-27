@@ -51,30 +51,32 @@ const [before, word, after] = m ? [m[1], m[2], m[3]] : [close, '', ''];
 
   gsap.registerPlugin(ScrollTrigger);
 
-  /* As the closing statement scrolls up the screen, the letters of its
-     last word turn into glass shapes one after another, then back into
-     letters, in order, as it carries on up. Scrolling back down runs it
-     in reverse. Each letter's window is a share of the scroll. With
-     reduced motion the word stays as type. */
+  /* As the closing statement comes up the screen, the letters of its last
+     word turn into glass shapes one after another and stay as shapes.
+     Once the line nears the top they turn back into letters, in order.
+     Scrolling back runs it the other way. The scroll only cues each
+     change; the letters turn in their own time, so a quick scroll can't
+     flash them. With reduced motion the word stays as type. */
   const close = document.querySelector<HTMLElement>('[data-wwa-change]');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (close && !reduce) {
     const word = mountChangeWord(close, '#FFF2E6', { pointer: false });
-    const n = word.count;
-    const on: boolean[] = [];
+    const STEP = 90; // ms between letters
+    let timers: number[] = [];
+    const turn = (on: boolean) => {
+      timers.forEach((t) => window.clearTimeout(t));
+      timers = Array.from({ length: word.count }, (_, i) => window.setTimeout(() => word.swap(i, on), i * STEP));
+    };
+    /* Shapes from when the line is three-quarters down the screen until
+       it's a quarter from the top. */
     ScrollTrigger.create({
       trigger: close,
-      start: 'top 85%',
-      end: 'bottom 15%',
-      onUpdate: ({ progress: p }) => {
-        for (let i = 0; i < n; i++) {
-          const want = p > 0.2 + i * 0.04 && p < 0.62 + i * 0.04;
-          if (want !== !!on[i]) {
-            on[i] = want;
-            word.swap(i, want);
-          }
-        }
-      },
+      start: 'top 75%',
+      end: 'top 25%',
+      onEnter: () => turn(true),
+      onEnterBack: () => turn(true),
+      onLeave: () => turn(false),
+      onLeaveBack: () => turn(false),
     });
   }
 </script>
