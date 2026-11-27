@@ -313,7 +313,10 @@ const nav = [
     /* The height of every button in the bar, menu and "Talk to us". */
     --item: calc(max(44px, 2.47em) - 0.285em);
     padding: 0.25em;
-    border-radius: 999px;
+    /* Exactly half the bar's height (fully round ends), not a huge
+       number, so the corners ease evenly into the scrolled bar's rather
+       than snapping square at the end. */
+    border-radius: calc((var(--bar) + 0.5em) / 2);
     /* An outline, not a fill, drawn inside the bar so its size doesn't
        change. Yellow over orange; it switches to suit whatever the bar is
        over as the page scrolls (see the script). */
@@ -324,11 +327,11 @@ const nav = [
     transition:
       box-shadow 0.25s ease,
       background-color 0.25s ease,
-      top 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
-      left 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
+      top 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+      left 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
       right 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
-      padding 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
-      border-radius 0.4s cubic-bezier(0.3, 0.7, 0.2, 1);
+      padding 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+      border-radius 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
   }
 
   /* When "Talk to us" is hovered, its arrow disc rolls out to the right;
