@@ -132,10 +132,11 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
   /* The closing statement, big, across the panel. */
   .wwa-close {
     grid-area: close;
-    max-width: 24em;
-    /* More room above the closing statement than between the heading
-       and its paragraphs. */
+    /* A rule across the panel above it, with room either side of the
+       rule. */
     margin: clamp(16px, 2.4vw, 40px) 0 0;
+    padding-top: clamp(24px, 3vw, 48px);
+    border-top: 1px solid rgb(24 34 53 / 0.2);
     font-family: 'Tumla', 'Albert Sans', system-ui, sans-serif;
     font-weight: 700;
     /* Smaller than the section's heading. */
