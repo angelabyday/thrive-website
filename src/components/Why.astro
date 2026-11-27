@@ -177,6 +177,10 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
        the donut, and the section holds a while for it before letting go. */
     mm.add('(min-width: 768px)', () => {
       const n = statements.length;
+      /* Where each statement sits squarely in place (the middle of its
+         pause), as a share of the whole run. Scrolling stops on one of
+         these, never with a statement part-way across. */
+      const rests: number[] = [];
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
@@ -185,9 +189,17 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
           scrub: 0.6,
           invalidateOnRefresh: true,
           onRefresh: measure,
+          snap: {
+            snapTo: (value: number) => gsap.utils.snap(rests, value),
+            duration: { min: 0.2, max: 0.6 },
+            delay: 0.08,
+            ease: 'power1.inOut',
+          },
         },
       });
+      const stops = [0];
       tl.to({}, { duration: 0.5 });
+      stops.push(0.25);
       for (let k = 1; k < n; k++) {
         tl.to(track, {
           x: () => -k * (track.offsetWidth + parseFloat(getComputedStyle(track).columnGap)),
@@ -196,8 +208,11 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
         });
         if (k === n - 1) tl.addLabel('bounce', '-=0.3');
         tl.to({}, { duration: 0.5 });
+        stops.push(tl.duration() - 0.25);
       }
       tl.to({}, { duration: 0.8 });
+      stops.push(tl.duration());
+      rests.push(...stops.map((t) => t / tl.duration()));
 
       /* The scroll only starts the donut, as the last slide arrives; it
          bounces through at its own pace. Scroll back before that and it's
