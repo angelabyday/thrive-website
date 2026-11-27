@@ -55,32 +55,31 @@ const [first, rest] = cut > 0 ? [before.slice(0, cut), before.slice(cut + 1)] : 
 
   gsap.registerPlugin(ScrollTrigger);
 
-  /* As the closing statement comes up the screen, the letters of its last
-     word turn into glass shapes one after another and stay as shapes.
-     Once the line nears the top they turn back into letters, in order.
-     Scrolling back runs it the other way. The scroll only cues each
-     change; the letters turn in their own time, so a quick scroll can't
-     flash them. With reduced motion the word stays as type. */
+  /* When the closing statement comes up the screen, the letters of its
+     last word turn into glass shapes one after another, hold a moment,
+     then turn back into letters in the same order, on their own. The
+     scroll only starts it; it plays again if you scroll back down past
+     the line and up to it again. With reduced motion the word stays as
+     type. */
   const close = document.querySelector<HTMLElement>('[data-wwa-change]');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (close && !reduce) {
     const word = mountChangeWord(close, '#FFF2E6', { pointer: false });
     const STEP = 90; // ms between letters
+    const HOLD = 1400; // ms all the shapes stay together
     let timers: number[] = [];
-    const turn = (on: boolean) => {
+    const play = () => {
       timers.forEach((t) => window.clearTimeout(t));
-      timers = Array.from({ length: word.count }, (_, i) => window.setTimeout(() => word.swap(i, on), i * STEP));
+      const back = word.count * STEP + HOLD;
+      timers = Array.from({ length: word.count }, (_, i) => [
+        window.setTimeout(() => word.swap(i, true), i * STEP),
+        window.setTimeout(() => word.swap(i, false), back + i * STEP),
+      ]).flat();
     };
-    /* Shapes from when the line is three-quarters down the screen until
-       it's a quarter from the top. */
     ScrollTrigger.create({
       trigger: close,
       start: 'top 75%',
-      end: 'top 25%',
-      onEnter: () => turn(true),
-      onEnterBack: () => turn(true),
-      onLeave: () => turn(false),
-      onLeaveBack: () => turn(false),
+      onEnter: play,
     });
   }
 </script>
