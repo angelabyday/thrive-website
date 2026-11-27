@@ -148,7 +148,9 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
     font-weight: 700;
     /* Smaller than the section's heading. */
     font-size: clamp(26px, 3vw, 52px);
-    line-height: 1.05;
+    /* A touch more room between its two lines (and for the coloured block
+       round "changed."). */
+    line-height: 1.2;
     letter-spacing: -0.015em;
     text-wrap: balance;
   }
