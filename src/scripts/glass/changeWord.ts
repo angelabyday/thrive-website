@@ -171,7 +171,7 @@ export function mountChangeWord(root: HTMLElement, ground: string) {
       const { lift, off } = suite[slabs[i].k];
       const unit = (cap / 2) * em * SIZE;
       const left = at.left - frame.left + at.width / 2 - unit - off * unit;
-      const top = at.top - frame.top + baseline * em - cap * em + lift * unit + 0.04 * em;
+      const top = at.top - frame.top + baseline * em - 2 * unit + lift * unit + 0.04 * em;
       slabs[i].mesh.position.set(left + unit - width / 2, height / 2 - (top + unit), 0);
       slabs[i].unit = unit;
       slabs[i].material.attenuationDistance = DEPTH * 8 * unit * (1 - pale * 0.7);
