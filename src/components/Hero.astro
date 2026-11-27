@@ -323,22 +323,13 @@ const nav = [
     background: var(--nav-bg, var(--orange));
     transition:
       box-shadow 0.25s ease,
-      background-color 0.25s ease,
-      top 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
-      left 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
-      right 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
-      border-radius 0.3s cubic-bezier(0.3, 0.7, 0.2, 1);
+      background-color 0.25s ease;
   }
 
-  /* Once the page scrolls, the bar moves up flush with the top and sides
-     of the window, square at the top and rounded only at the bottom. */
+  /* Once the page scrolls, the bar stays where it is, rounded, but turns
+     solid navy with no outline, whatever is behind it; yellow logo,
+     yellow buttons with orange type. */
   .hero-nav[data-stuck] {
-    top: 0;
-    left: 0;
-    right: 0;
-    border-radius: 0 0 clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px);
-    /* Solid navy with no outline once it's at the top, whatever is
-       behind it; yellow logo, yellow buttons with orange type. */
     background: #182235;
     box-shadow: none;
   }
