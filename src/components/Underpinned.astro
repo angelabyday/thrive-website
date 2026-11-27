@@ -1,0 +1,86 @@
+---
+/* "Our framework is underpinned by": a navy base directly under the six
+   service cards, as wide as their grid, so the cards look to stand on
+   it. The label in the first column and the two pillars in the next two,
+   lining up with the cards above; mint type on navy. Two columns on
+   tablets (label across the top), one on phones. */
+interface Pillar {
+  name: string;
+  text: string;
+}
+interface Props {
+  label: string;
+  pillars: Pillar[];
+}
+const { label, pillars } = Astro.props;
+---
+
+<div class="base">
+  <p class="base-label">{label}</p>
+  {
+    pillars.map((p) => (
+      <div class="base-pillar">
+        <h3 class="base-name">{p.name}</h3>
+        <p class="base-text">{p.text}</p>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .base {
+    --gap: clamp(12px, 1.5vw, 24px);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(20px, 2.4vw, 40px) var(--gap);
+    /* Up against the cards, the same gap as between them, and room
+       below before the section ends. */
+    margin: calc(var(--gap) - clamp(24px, 3vw, 48px)) var(--pad-x) clamp(48px, 6vw, 112px);
+    padding: clamp(28px, 3.4vw, 56px) clamp(20px, 2.6vw, 44px);
+    border-radius: clamp(16px, 1.8vw, 28px);
+    background: #182235;
+    color: #c6ece2;
+  }
+
+  .base-label {
+    margin: 0;
+    font-size: clamp(16px, 1.3vw, 20px);
+    line-height: 1.3;
+  }
+
+  .base-pillar {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 0.8vw, 14px);
+  }
+
+  .base-name {
+    margin: 0;
+    font-size: clamp(24px, 2.2vw, 38px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  .base-text {
+    margin: 0;
+    max-width: 26em;
+    font-size: clamp(16px, 1.2vw, 19px);
+    line-height: 1.45;
+  }
+
+  /* Two across, as the cards are, with the label across the top. */
+  @media (max-width: 1199px) {
+    .base {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .base-label {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .base {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

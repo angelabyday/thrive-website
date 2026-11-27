@@ -2,6 +2,7 @@
 import Hero from '../components/Hero.astro';
 import Footer from '../components/Footer.astro';
 import ServiceStages from '../components/ServiceStages.astro';
+import Underpinned from '../components/Underpinned.astro';
 import CaseStudies from '../components/CaseStudies.astro';
 import Values from '../components/Values.astro';
 import Why from '../components/Why.astro';
@@ -284,17 +285,19 @@ const email = 'hello@andwethrive.co.uk';
 
         <ServiceStages stages={stages} />
 
-        <div class="underpinned">
-          <h3>Our framework is underpinned by:</h3>
-          <p>
-            <strong>Technology &amp; data.</strong> We use technology and data to augment,
-            accelerate and amplify the work we do.
-          </p>
-          <p>
-            <strong>Creativity &amp; craft.</strong> We use creativity to solve problems and bring
-            craft to everything we produce.
-          </p>
-        </div>
+        <Underpinned
+          label="Our framework is underpinned by:"
+          pillars={[
+            {
+              name: 'Technology & data',
+              text: 'We use technology and data to augment, accelerate and amplify the work we do.',
+            },
+            {
+              name: 'Creativity & craft',
+              text: 'We use creativity to solve problems and bring craft to everything we produce.',
+            },
+          ]}
+        />
       </section>
       </div>
 
