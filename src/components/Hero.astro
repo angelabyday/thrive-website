@@ -251,7 +251,7 @@ const nav = [
     z-index: 100;
     top: var(--nav-pad);
     left: var(--nav-pad);
-    right: var(--nav-pad);
+    right: calc(var(--nav-pad) - var(--grow, 0px));
     /* Shared by the menu pill and the "Talk to us" button, so they're
        the same height. */
     --bar: max(44px, 2.6em);
@@ -326,7 +326,28 @@ const nav = [
       background-color 0.25s ease,
       top 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
       left 0.4s cubic-bezier(0.3, 0.7, 0.2, 1),
-      right 0.4s cubic-bezier(0.3, 0.7, 0.2, 1);
+      right 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  /* When "Talk to us" is hovered, its arrow disc rolls out to the right;
+     the bar grows out with it by the same amount, so the gap round the
+     disc stays the same. The disc moves by its margin (not a transform) so
+     the button itself gets wider. */
+  .hero-nav:has(.cta:hover),
+  .hero-nav:has(.cta:focus-visible) {
+    --grow: 0.55em;
+  }
+
+  .hero-nav .cta-icon {
+    transition:
+      margin-left 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+      transform 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .hero-nav .cta:hover .cta-icon,
+  .hero-nav .cta:focus-visible .cta-icon {
+    transform: none;
+    margin-left: 0.4em;
   }
 
   /* Once the page scrolls, the bar moves up to halve its gap from the top
@@ -337,7 +358,7 @@ const nav = [
     --side: calc(var(--nav-pad) + 6vw + 0.15 * (100vw - 2 * var(--nav-pad) - 12vw));
     top: calc(var(--nav-pad) / 2);
     left: min(var(--side), (100vw - 760px) / 2);
-    right: min(var(--side), (100vw - 760px) / 2);
+    right: calc(min(var(--side), (100vw - 760px) / 2) - var(--grow, 0px));
     background: #182235;
     box-shadow: none;
   }
@@ -361,7 +382,7 @@ const nav = [
   @media (max-width: 800px) {
     .hero-nav[data-stuck] {
       left: min(var(--side), (100vw - 280px) / 2);
-      right: min(var(--side), (100vw - 280px) / 2);
+      right: calc(min(var(--side), (100vw - 280px) / 2) - var(--grow, 0px));
     }
   }
 
