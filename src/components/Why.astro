@@ -298,6 +298,9 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     position: relative;
     flex: 1;
     display: grid;
+    /* One column, the panel's width, so the slides size to the panel
+       rather than to their text. */
+    grid-template-columns: minmax(0, 1fr);
     align-content: center;
   }
 
@@ -307,6 +310,8 @@ const statements = [heading, ...lines].map((t) => t.split(/\s+/).filter(Boolean)
     position: relative;
     z-index: 1;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
   }
 
   /* The statements side by side, each a full slide wide; the script
