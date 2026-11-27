@@ -352,19 +352,21 @@ const nav = [
 
   /* Once the page scrolls, the bar moves up to halve its gap from the top
      of the window and draws in to about 60% of its width, never narrower
-     than its contents need, and turns solid navy with no outline,
-     whatever is behind it; yellow logo, yellow buttons with navy type. */
+     than its contents need, and turns solid cream with no outline,
+     whatever is behind it; orange logo, yellow buttons with navy type. */
   .hero-nav[data-stuck] {
     --side: calc(var(--nav-pad) + 6vw + 0.15 * (100vw - 2 * var(--nav-pad) - 12vw));
     top: calc(var(--nav-pad) / 2);
     left: min(var(--side), (100vw - 760px) / 2);
     right: calc(min(var(--side), (100vw - 760px) / 2) - var(--grow, 0px));
-    background: #182235;
-    box-shadow: none;
+    background: #fff2e6;
+    /* A soft shadow, so the cream bar still reads over the cream
+       sections. */
+    box-shadow: 0 6px 24px rgb(24 34 53 / 0.12);
   }
 
   .hero-nav[data-stuck] .hero-logo {
-    background: var(--yellow);
+    background: var(--orange);
   }
 
   .hero-nav[data-stuck] .nav-pill a,
