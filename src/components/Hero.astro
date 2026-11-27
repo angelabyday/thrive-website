@@ -272,10 +272,20 @@ const nav = [
     display: contents;
   }
 
+  /* The menu's hover highlight matches "Talk to us": the same height and
+     the same gap from the bar's edge. */
   .hero-nav .nav-pill {
     grid-column: 1;
     grid-row: 1;
     justify-self: start;
+    height: calc(var(--bar) - 0.3em);
+    margin-left: 0.15em;
+  }
+
+  /* The highlight fills the menu's height in the bar. */
+  .hero-nav .nav-slide {
+    top: 0;
+    bottom: 0;
   }
 
   /* Smaller than the bar, with room round it, so it sits inside the bar
