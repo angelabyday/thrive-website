@@ -5,6 +5,8 @@
    floors and ceilings so the hero holds up from phone to large desktop. */
 const nav = [
   { href: '#what-we-do', label: 'What we do' },
+  /* No section for this yet: the link goes nowhere until there is one. */
+  { href: '#how-we-work', label: 'How we work' },
   { href: '#work', label: 'Work' },
 ];
 ---
@@ -253,6 +255,8 @@ const nav = [
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
+    /* The same height with or without the menu in it. */
+    min-height: calc(var(--bar) + 0.5em);
     padding: 0.25em;
     border-radius: 999px;
     background: var(--yellow);
@@ -274,10 +278,15 @@ const nav = [
     justify-self: start;
   }
 
+  /* Smaller than the bar, with room round it, so it sits inside the bar
+     rather than filling its end. */
   .hero-nav .cta {
+    --cta-size: calc(var(--bar) - 0.7em);
     grid-column: 3;
     grid-row: 1;
     justify-self: end;
+    margin-right: 0.4em;
+    font-size: 0.88em;
   }
 
   /* The menu sits straight on the bar. */
