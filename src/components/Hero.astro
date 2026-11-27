@@ -166,7 +166,7 @@ const nav = [
         if (header.contains(el)) continue;
         for (let at: Element | null = el; at; at = at.parentElement) {
           const bg = getComputedStyle(at).backgroundColor;
-          if (INK[bg]) return INK[bg];
+          if (INK[bg]) return [...INK[bg], bg];
           if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return null;
         }
       }
@@ -179,6 +179,7 @@ const nav = [
       if (ink) {
         header.style.setProperty('--nav-ink', ink[0]);
         header.style.setProperty('--nav-text', ink[1]);
+        header.style.setProperty('--nav-bg', ink[2]);
       }
     };
     const queue = () => {
@@ -315,7 +316,12 @@ const nav = [
        change. Yellow over orange; it switches to suit whatever the bar is
        over as the page scrolls (see the script). */
     box-shadow: inset 0 0 0 2px var(--nav-ink, var(--yellow));
-    transition: box-shadow 0.25s ease;
+    /* Filled with the colour of the section behind (orange in the hero),
+       so nothing shows through it as the page scrolls underneath. */
+    background: var(--nav-bg, var(--orange));
+    transition:
+      box-shadow 0.25s ease,
+      background-color 0.25s ease;
   }
 
   .hero-nav .hero-logo {
