@@ -18,11 +18,17 @@ const { heading, body, email } = Astro.props;
       <h2 class="talk-heading">{heading}</h2>
       {body.map((p) => <p class="talk-text">{p}</p>)}
 
-      {/* The address in one big lozenge: a click copies it, and the
-          lozenge says "Copied" for a moment, keeping its size. */}
-      <button type="button" class="talk-pill" data-copy={email} aria-label={`Copy email address ${email}`}>
-        <span class="talk-pill-text" data-copy-address>{email}</span>
-        <span class="talk-pill-text talk-pill-done" aria-hidden="true">Copied</span>
+      {/* The address in one big lozenge that opens an email; under it, a
+          small button to copy the address instead. */}
+      <a class="talk-pill" href={`mailto:${email}`}>
+        <span class="talk-pill-text">{email}</span>
+      </a>
+      <button type="button" class="talk-copy-btn" data-copy={email}>
+        <svg class="talk-copy-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5.5" y="5.5" width="8" height="8" rx="1.8"></rect>
+          <path d="M10.5 5.5V4.3A1.8 1.8 0 0 0 8.7 2.5H4.3A1.8 1.8 0 0 0 2.5 4.3v4.4a1.8 1.8 0 0 0 1.8 1.8h1.2"></path>
+        </svg>
+        <span data-copy-label>Copy email</span>
       </button>
       <span class="visually-hidden" aria-live="polite" data-copy-status></span>
     </div>
@@ -60,23 +66,24 @@ const { heading, body, email } = Astro.props;
   }
 
   document.querySelectorAll<HTMLElement>('[data-talk]').forEach((panel) => {
+    /* The small button under the lozenge copies the address, and says
+       "Copied" for a moment. */
     const button = panel.querySelector<HTMLButtonElement>('[data-copy]');
+    const label = panel.querySelector<HTMLElement>('[data-copy-label]');
     const status = panel.querySelector<HTMLElement>('[data-copy-status]');
-    if (!button) return;
+    if (!button || !label) return;
     let reset = 0;
     button.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(button.dataset.copy ?? '');
+        label.textContent = 'Copied';
+        if (status) status.textContent = 'Email address copied';
       } catch {
-        /* No clipboard: open an email instead. */
-        window.location.href = `mailto:${button.dataset.copy ?? ''}`;
-        return;
+        label.textContent = 'Press Ctrl or ⌘ + C';
       }
-      button.toggleAttribute('data-copied', true);
-      if (status) status.textContent = 'Email address copied';
       window.clearTimeout(reset);
       reset = window.setTimeout(() => {
-        button.toggleAttribute('data-copied', false);
+        label.textContent = 'Copy email';
         if (status) status.textContent = '';
       }, 1800);
     });
@@ -180,19 +187,40 @@ const { heading, body, email } = Astro.props;
     transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.3, 0.7, 0.2, 1);
   }
 
-  .talk-pill-done {
-    opacity: 0;
-    transform: translateY(0.3em);
+  .talk-pill {
+    text-decoration: none;
   }
 
-  .talk-pill[data-copied] [data-copy-address] {
-    opacity: 0;
-    transform: translateY(-0.3em);
+  /* The small copy button: yellow type and icon straight on the orange. */
+  .talk-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    margin: 0;
+    padding: 0.3em 0.2em;
+    border: 0;
+    background: none;
+    color: #f9e07a;
+    font: inherit;
+    font-size: clamp(15px, 1.1vw, 18px);
+    font-weight: 500;
+    cursor: pointer;
   }
 
-  .talk-pill[data-copied] .talk-pill-done {
-    opacity: 1;
-    transform: none;
+  .talk-copy-icon {
+    width: 1.05em;
+    height: 1.05em;
+  }
+
+  .talk-copy-btn:hover span {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .talk-copy-btn:focus-visible {
+    outline: 2px solid #f9e07a;
+    outline-offset: 3px;
+    border-radius: 6px;
   }
 
   .talk-pill:focus-visible {
