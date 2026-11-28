@@ -1,8 +1,8 @@
 ---
-/* "Our framework is underpinned by": a navy base directly under the six
+/* "Our framework is underpinned by": an outlined navy base directly under the six
    service cards, as wide as their grid, so the cards look to stand on
    it. The label in the first column and the two pillars in the next two,
-   lining up with the cards above; mint type on navy. Two columns on
+   lining up with the cards above; navy type under a rule. Two columns on
    tablets (label across the top), one on phones. */
 interface Pillar {
   name: string;
@@ -33,13 +33,14 @@ const { label, pillars } = Astro.props;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: clamp(20px, 2.4vw, 40px) var(--gap);
-    /* Up against the cards, the same gap as between them, and room
-       below before the section ends. */
-    margin: calc(var(--gap) - clamp(24px, 3vw, 48px)) var(--pad-x) clamp(48px, 6vw, 112px);
-    padding: clamp(28px, 3.4vw, 56px) clamp(20px, 2.6vw, 44px);
-    border-radius: clamp(16px, 1.8vw, 28px);
-    background: #182235;
-    color: #c6ece2;
+    /* The cards' own margin above the rule, the same again below it,
+       and room below before the section ends. */
+    margin: 0 var(--pad-x) var(--section-y);
+    /* A rule across, as in "What we are", and the text flush with the
+       cards' edges. */
+    padding: clamp(24px, 3vw, 48px) 0 0;
+    border-top: 1px solid rgb(24 34 53 / 0.2);
+    color: #182235;
   }
 
   .base-label {
@@ -56,7 +57,7 @@ const { label, pillars } = Astro.props;
 
   .base-name {
     margin: 0;
-    font-size: clamp(24px, 2.2vw, 38px);
+    font-size: clamp(21px, 1.7vw, 30px);
     line-height: 1.05;
     letter-spacing: -0.01em;
   }

@@ -171,6 +171,18 @@ const email = 'hello@andwethrive.co.uk';
           --pad-x: clamp(64px, 8vw, 200px);
         }
       }
+      /* Space above and below each section's content. Big screens, from
+         1600px, get more of it, so the sections breathe. */
+      :root {
+        --section-y: clamp(56px, 7vw, 120px);
+        --panel-y: clamp(48px, 6vw, 112px);
+      }
+      @media (min-width: 1600px) {
+        :root {
+          --section-y: clamp(150px, 9vw, 210px);
+          --panel-y: clamp(140px, 8.5vw, 200px);
+        }
+      }
       body {
         margin: 0;
         font-family: 'Albert Sans', system-ui, sans-serif;
@@ -203,7 +215,7 @@ const email = 'hello@andwethrive.co.uk';
       /* A section's heading and short intro, lined up with the content
          below it. Same heading size as the case studies. */
       .section-intro {
-        padding: clamp(56px, 7vw, 120px) var(--pad-x) 0;
+        padding: var(--section-y) var(--pad-x) 0;
       }
       .section-intro h2 {
         margin: 0;

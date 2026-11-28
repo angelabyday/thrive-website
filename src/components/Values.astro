@@ -84,6 +84,7 @@ const looks = [
 </script>
 
 <style>
+
   /* Navy edge to edge (the service stages' navy), cream heading. */
   .values {
     margin: 0;
@@ -182,7 +183,7 @@ const looks = [
 
   .value-title {
     margin: 0;
-    font-size: 12cqw;
+    font-size: 10cqw;
     line-height: 1.08;
     text-wrap: balance;
   }
@@ -268,6 +269,13 @@ const looks = [
   @media (prefers-reduced-motion: reduce) and (hover: hover) {
     .value:hover .value-back {
       opacity: 1;
+    }
+  }
+
+  /* Big screens: the same space as the other sections. */
+  @media (min-width: 1600px) {
+    .values {
+      padding-block: var(--section-y);
     }
   }
 </style>

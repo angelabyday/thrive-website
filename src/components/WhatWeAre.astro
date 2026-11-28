@@ -99,6 +99,13 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
     color: #182235;
   }
 
+  /* Desktop: more orange above and below the panel. */
+  @media (min-width: 1024px) {
+    .wwa {
+      padding-block: clamp(72px, 7vw, 168px);
+    }
+  }
+
   .wwa-head {
     grid-area: head;
     display: flex;
@@ -160,7 +167,10 @@ const [rest, word, after] = m ? [m[1], m[2], m[3]] : [tail, '', ''];
      orange, blue with navy, navy with blue. Still for reduced motion. */
   .wwa-changed {
     display: inline-block;
-    padding: 0 0.14em 0.14em;
+    /* A tighter line than the statement's, so there's a little less
+       room above the word; the bottom padding keeps the space below. */
+    padding: 0 0.14em 0.2em;
+    line-height: 1.08;
     border-radius: 0.18em;
     background: #eb573d;
     color: #f9e07a;
